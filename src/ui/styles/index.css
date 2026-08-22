@@ -1,0 +1,251 @@
+:host {
+  all: initial;
+  color: #18191c;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button {
+  font: inherit;
+}
+
+.bvs-float-button {
+  position: fixed;
+  right: 24px;
+  bottom: 92px;
+  z-index: 9999999;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: #00aeec;
+  box-shadow: 0 10px 28px rgb(0 174 236 / 32%);
+  cursor: pointer;
+}
+
+.bvs-panel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999999;
+  width: min(440px, calc(100vw - 24px));
+  min-height: 220px;
+  overflow: hidden;
+  border: 1px solid #e3e5e7;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 54px rgb(0 0 0 / 18%);
+}
+
+.bvs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  color: #fff;
+  background: #00aeec;
+}
+
+.bvs-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bvs-header strong {
+  font-size: 16px;
+}
+
+.bvs-header span {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.bvs-header button {
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.bvs-content {
+  padding: 18px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.bvs-status {
+  color: #61666d;
+}
+
+.bvs-summary {
+  max-height: 420px;
+  margin: 14px 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  font: inherit;
+}
+
+.bvs-error {
+  color: #f53f3f;
+}
+
+.bvs-content button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 14px;
+  color: #fff;
+  background: #00aeec;
+  cursor: pointer;
+}
+
+.bvs-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000002;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(15 23 42 / 44%);
+  backdrop-filter: blur(8px);
+}
+
+.bvs-modal {
+  width: min(620px, calc(100vw - 24px));
+  max-height: min(760px, calc(100vh - 24px));
+  overflow: auto;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 22px;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 28px 90px rgb(15 23 42 / 32%);
+  color: #18191c;
+}
+
+.bvs-modal > header,
+.bvs-modal > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bvs-modal > header {
+  margin-bottom: 16px;
+}
+
+.bvs-modal > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.bvs-modal > header strong {
+  font-size: 17px;
+}
+
+.bvs-modal > header span {
+  color: #9499a0;
+  font-size: 12px;
+}
+
+.bvs-modal > header button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 10px;
+  color: #61666d;
+  background: #f1f2f3;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.bvs-modal textarea {
+  display: block;
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  border: 1px solid #dfe3e8;
+  border-radius: 14px;
+  padding: 14px;
+  outline: none;
+  color: #18191c;
+  background: #f7f8fa;
+  font: 13px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.bvs-modal textarea:focus {
+  border-color: #00aeec;
+  box-shadow: 0 0 0 3px rgb(0 174 236 / 12%);
+  background: #fff;
+}
+
+.bvs-modal > footer {
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.bvs-modal > footer button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #00aeec, #1687ed);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bvs-modal > footer button.is-secondary {
+  color: #61666d;
+  background: #f1f2f3;
+}
+
+.bvs-modal-error {
+  margin: 10px 0 0;
+  color: #f53f3f;
+  font-size: 12px;
+}
+
+.bvs-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 34px;
+  z-index: 10000004;
+  max-width: min(520px, calc(100vw - 28px));
+  transform: translateX(-50%);
+  border: 1px solid rgb(255 255 255 / 65%);
+  border-radius: 12px;
+  padding: 10px 16px;
+  color: #fff;
+  background: rgb(24 25 28 / 92%);
+  box-shadow: 0 14px 38px rgb(15 23 42 / 24%);
+  font-size: 13px;
+}
+
+.bvs-toast.is-success {
+  background: rgb(20 154 96 / 94%);
+}
+
+.bvs-toast.is-error {
+  background: rgb(230 57 70 / 94%);
+}
+
+@media (max-width: 620px) {
+  .bvs-modal-backdrop {
+    align-items: end;
+    padding: 8px;
+  }
+
+  .bvs-modal {
+    width: 100%;
+    max-height: calc(100vh - 16px);
+    border-radius: 20px;
+    padding: 16px;
+  }
+}
