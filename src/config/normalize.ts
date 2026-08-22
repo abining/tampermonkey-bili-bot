@@ -36,7 +36,7 @@ function normalizePromptPresets(
       return {
         id,
         name: String(item.name || id),
-        icon: String(item.icon || '📄'),
+        icon: String(item.icon || ''),
         prompt,
       };
     })

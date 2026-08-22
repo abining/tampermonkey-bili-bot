@@ -821,3 +821,24 @@
     padding: 0 14px;
   }
 }
+
+.bvs-settings-brand-mark {
+  font-style: normal;
+}
+
+.bvs-settings-inline-fields.is-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.bvs-settings-text-button,
+.bvs-settings-preset-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.bvs-settings-preset-list > button > span:first-child {
+  display: grid;
+  place-items: center;
+}

@@ -1,4 +1,5 @@
 import type { VideoContext } from '../../contracts/video-context';
+import { APP_ICONS, UiIcon } from '../icons';
 import { formatDuration } from './presentation';
 
 export interface VideoMetaProps {
@@ -9,7 +10,7 @@ export function VideoMeta({ video }: VideoMetaProps) {
   if (!video) {
     return (
       <section className="bvs-main-video-meta is-empty">
-        <span className="bvs-main-video-cover-placeholder">BV</span>
+        <span className="bvs-main-video-cover-placeholder"><UiIcon icon={APP_ICONS.logo} size={18} /></span>
         <div>
           <strong>等待识别当前视频</strong>
           <small>解析开始后会显示分集、UP主和视频信息。</small>
@@ -35,7 +36,9 @@ export function VideoMeta({ video }: VideoMetaProps) {
             {video.bvid ? ` · ${video.bvid}` : ''}
           </small>
         </span>
-        <span className="bvs-main-video-expand" aria-hidden="true">⌄</span>
+        <span className="bvs-main-video-expand" aria-hidden="true">
+          <UiIcon icon={APP_ICONS.expand} size={16} />
+        </span>
       </summary>
       <div className="bvs-main-video-details">
         {collection ? (

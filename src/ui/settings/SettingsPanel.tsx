@@ -13,6 +13,13 @@ import {
   type ResultActionButtonId,
 } from '../../config';
 import { cloneJson } from '../../utils';
+import {
+  APP_ICONS,
+  getPresetIcon,
+  SETTINGS_SECTION_ICONS,
+  UiIcon,
+  type UiIconComponent,
+} from '../icons';
 import type { SettingsPanelProps } from './types';
 
 type SettingsSectionId =
@@ -27,18 +34,18 @@ type SettingsSectionId =
 interface SettingsSection {
   id: SettingsSectionId;
   label: string;
-  icon: string;
+  icon: UiIconComponent;
   description: string;
 }
 
 const SETTINGS_SECTIONS: SettingsSection[] = [
-  { id: 'general', label: '通用', icon: '⚙', description: '自动解析与基础行为' },
-  { id: 'ai', label: 'AI 与模型', icon: '✦', description: '接口、密钥与模型配置' },
-  { id: 'summary', label: '摘要模板', icon: '▤', description: '摘要风格与提示词' },
-  { id: 'analysis', label: '内容分析', icon: '◎', description: '评论、弹幕与全面分析' },
-  { id: 'image', label: '配图', icon: '▧', description: 'API 生图与 Google Flow' },
-  { id: 'services', label: '第三方服务', icon: '↗', description: 'Flomo 与评论发送' },
-  { id: 'data', label: '数据与界面', icon: '◫', description: '按钮、缓存与配置文件' },
+  { id: 'general', label: '通用', icon: SETTINGS_SECTION_ICONS.general, description: '自动解析与基础行为' },
+  { id: 'ai', label: 'AI 与模型', icon: SETTINGS_SECTION_ICONS.ai, description: '接口、密钥与模型配置' },
+  { id: 'summary', label: '摘要模板', icon: SETTINGS_SECTION_ICONS.summary, description: '摘要风格与提示词' },
+  { id: 'analysis', label: '内容分析', icon: SETTINGS_SECTION_ICONS.analysis, description: '评论、弹幕与全面分析' },
+  { id: 'image', label: '配图', icon: SETTINGS_SECTION_ICONS.image, description: 'API 生图与 Google Flow' },
+  { id: 'services', label: '第三方服务', icon: SETTINGS_SECTION_ICONS.services, description: 'Flomo 与评论发送' },
+  { id: 'data', label: '数据与界面', icon: SETTINGS_SECTION_ICONS.data, description: '按钮、缓存与配置文件' },
 ];
 
 const RESULT_ACTION_LABELS: Record<ResultActionButtonId, string> = {
@@ -62,7 +69,7 @@ function createPreset(prefix: string, index: number): PromptPreset {
   return {
     id: `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     name: `新模板 ${index}`,
-    icon: '📄',
+    icon: '',
     prompt: '',
   };
 }
@@ -117,7 +124,9 @@ function SwitchField({
 function SectionHeader({ section }: { section: SettingsSection }) {
   return (
     <header className="bvs-settings-section-header">
-      <span className="bvs-settings-section-icon" aria-hidden="true">{section.icon}</span>
+      <span className="bvs-settings-section-icon" aria-hidden="true">
+        <UiIcon icon={section.icon} size={19} />
+      </span>
       <div>
         <h3>{section.label}</h3>
         <p>{section.description}</p>
@@ -179,10 +188,10 @@ function PresetEditor({
       <div className="bvs-settings-subheading">
         <div>
           <strong>{title}</strong>
-          <small>选择模板后可编辑名称、图标和完整提示词。</small>
+          <small>选择模板后可编辑名称和完整提示词，图标由界面统一管理。</small>
         </div>
         <button type="button" className="bvs-settings-text-button" onClick={addPreset}>
-          ＋ 新建
+          <UiIcon icon={APP_ICONS.add} size={15} />新建
         </button>
       </div>
       <div className="bvs-settings-preset-layout">
@@ -196,22 +205,15 @@ function PresetEditor({
               role="option"
               aria-selected={preset.id === activePreset?.id}
             >
-              <span>{preset.icon || '📄'}</span>
+              <span><UiIcon icon={getPresetIcon(preset.id)} size={16} /></span>
               <span>{preset.name}</span>
             </button>
           ))}
         </div>
         {activePreset ? (
           <div className="bvs-settings-preset-form">
-            <div className="bvs-settings-inline-fields">
-              <Field label="图标">
-                <input
-                  value={activePreset.icon}
-                  maxLength={8}
-                  onChange={(event) => updatePreset({ icon: event.currentTarget.value })}
-                />
-              </Field>
-              <Field label="模板名称" wide>
+            <div className="bvs-settings-inline-fields is-single">
+              <Field label="模板名称">
                 <input
                   value={activePreset.name}
                   onChange={(event) => updatePreset({ name: event.currentTarget.value })}
@@ -226,8 +228,12 @@ function PresetEditor({
               />
             </Field>
             <div className="bvs-settings-preset-actions">
-              <button type="button" onClick={() => movePreset(-1)}>上移</button>
-              <button type="button" onClick={() => movePreset(1)}>下移</button>
+              <button type="button" onClick={() => movePreset(-1)}>
+                <UiIcon icon={APP_ICONS.moveUp} size={14} />上移
+              </button>
+              <button type="button" onClick={() => movePreset(1)}>
+                <UiIcon icon={APP_ICONS.moveDown} size={14} />下移
+              </button>
               <button
                 type="button"
                 className="is-danger"
@@ -838,13 +844,13 @@ export function SettingsPanel({
                   disabled={index === 0}
                   onClick={() => moveResultAction(item.id, -1)}
                   aria-label={`上移${RESULT_ACTION_LABELS[item.id]}`}
-                >↑</button>
+                ><UiIcon icon={APP_ICONS.moveUp} size={14} /></button>
                 <button
                   type="button"
                   disabled={index === draft.resultActionButtons.length - 1}
                   onClick={() => moveResultAction(item.id, 1)}
                   aria-label={`下移${RESULT_ACTION_LABELS[item.id]}`}
-                >↓</button>
+                ><UiIcon icon={APP_ICONS.moveDown} size={14} /></button>
               </span>
             </div>
           ))}
@@ -919,13 +925,17 @@ export function SettingsPanel({
       >
         <header className="bvs-settings-header">
           <div>
-            <span className="bvs-settings-brand-mark">b</span>
+            <span className="bvs-settings-brand-mark">
+              <UiIcon icon={APP_ICONS.logo} size={21} strokeWidth={2.25} />
+            </span>
             <div>
               <h2 id="bvs-settings-title">视频总结设置</h2>
-              <p>迁移 Beta · 设置只在保存后生效</p>
+              <p>界面与功能设置只在保存后生效</p>
             </div>
           </div>
-          <button type="button" onClick={onCancel} aria-label="关闭设置">×</button>
+          <button type="button" onClick={onCancel} aria-label="关闭设置">
+            <UiIcon icon={APP_ICONS.close} size={18} />
+          </button>
         </header>
 
         <div className="bvs-settings-layout">
@@ -937,7 +947,7 @@ export function SettingsPanel({
                 className={section.id === activeSection ? 'is-active' : ''}
                 onClick={() => setActiveSection(section.id)}
               >
-                <span aria-hidden="true">{section.icon}</span>
+                <span aria-hidden="true"><UiIcon icon={section.icon} size={16} /></span>
                 <span>
                   <strong>{section.label}</strong>
                   <small>{section.description}</small>

@@ -23,6 +23,7 @@ import {
   type SummaryResultStatus,
 } from './results';
 import { SettingsContainer } from './settings';
+import { APP_ICONS, UiIcon } from './icons';
 
 interface AppProps {
   controller: AppController;
@@ -371,7 +372,9 @@ export function App({ controller }: AppProps) {
                 <strong>粘贴当前分集字幕</strong>
                 <span>支持纯文本或 SRT 内容</span>
               </div>
-              <button type="button" onClick={() => controller.setManualSubtitleOpen(false)}>×</button>
+              <button type="button" aria-label="关闭粘贴字幕" onClick={() => controller.setManualSubtitleOpen(false)}>
+                <UiIcon icon={APP_ICONS.close} size={18} />
+              </button>
             </header>
             <textarea
               value={manualText}
@@ -396,7 +399,9 @@ export function App({ controller }: AppProps) {
                 <strong>编辑视频摘要</strong>
                 <span>修改后可复制、发评论或重新生成配图</span>
               </div>
-              <button type="button" onClick={() => setEditingSummary(false)}>×</button>
+              <button type="button" aria-label="关闭摘要编辑" onClick={() => setEditingSummary(false)}>
+                <UiIcon icon={APP_ICONS.close} size={18} />
+              </button>
             </header>
             <textarea
               value={summaryDraft}

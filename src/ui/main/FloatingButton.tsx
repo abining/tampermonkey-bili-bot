@@ -4,6 +4,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
+import { APP_ICONS, UiIcon } from '../icons';
 import { PHASE_PRESENTATION } from './presentation';
 import type {
   FloatingButtonPosition,
@@ -147,7 +148,9 @@ export function FloatingButton({
       title={`${presentation.label}${statusMessage ? ` · ${statusMessage}` : ''}`}
     >
       <span className="bvs-main-float-ring" aria-hidden="true" />
-      <span className="bvs-main-float-logo" aria-hidden="true">b</span>
+      <span className="bvs-main-float-logo" aria-hidden="true">
+        <UiIcon icon={APP_ICONS.logo} size={25} strokeWidth={2.25} />
+      </span>
       <span className="bvs-main-float-status" aria-hidden="true" />
       {presentation.busy ? <span className="bvs-main-float-progress" aria-hidden="true" /> : null}
     </button>

@@ -1,4 +1,5 @@
 import type { AppSnapshot } from '../../contracts/app-snapshot';
+import { PHASE_ICONS, UiIcon } from '../icons';
 import { PHASE_PRESENTATION } from './presentation';
 
 export interface StatusCardProps {
@@ -22,7 +23,11 @@ export function StatusCard({
   return (
     <section className={`bvs-main-status is-${presentation.tone}`} aria-live="polite">
       <div className="bvs-main-status-icon" aria-hidden="true">
-        {presentation.busy ? <span className="bvs-main-spinner" /> : presentation.icon}
+        <UiIcon
+          className={presentation.busy ? 'bvs-main-spinner' : undefined}
+          icon={PHASE_ICONS[snapshot.phase]}
+          size={18}
+        />
       </div>
       <div className="bvs-main-status-copy">
         <div>
@@ -33,7 +38,9 @@ export function StatusCard({
       </div>
       <div className="bvs-main-status-actions">
         {presentation.busy ? (
-          <button type="button" onClick={onAbort}>停止</button>
+          <button type="button" onClick={onAbort}>
+            停止
+          </button>
         ) : null}
         {snapshot.phase === 'idle' ? (
           <button type="button" className="is-primary" onClick={() => void onStartParsing()}>

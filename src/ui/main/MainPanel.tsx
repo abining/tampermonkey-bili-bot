@@ -5,6 +5,7 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
+import { APP_ICONS, UiIcon, type UiIconComponent } from '../icons';
 import { ManualSubtitlePanel } from './ManualSubtitlePanel';
 import { StatusCard } from './StatusCard';
 import type {
@@ -25,6 +26,7 @@ interface PanelInteraction {
 const PANEL_MARGIN = 12;
 const PANEL_MIN_WIDTH = 360;
 const PANEL_MIN_HEIGHT = 360;
+const PANEL_MAX_WIDTH = 520;
 
 function getViewport(): { width: number; height: number } {
   if (typeof window === 'undefined') return { width: 1366, height: 768 };
@@ -33,8 +35,8 @@ function getViewport(): { width: number; height: number } {
 
 export function createDefaultPanelGeometry(): PanelGeometry {
   const viewport = getViewport();
-  let width = viewport.width >= 1600 ? 520 : 480;
-  let height = viewport.height >= 900 ? 760 : 720;
+  let width = viewport.width >= 1600 ? 480 : 448;
+  let height = Math.min(700, Math.round(viewport.height * 0.82));
   if (viewport.width <= 900) width = Math.min(440, viewport.width - PANEL_MARGIN * 2);
   if (viewport.width <= 620) width = viewport.width - PANEL_MARGIN * 2;
   height = Math.min(height, viewport.height - PANEL_MARGIN * 2);
@@ -48,7 +50,10 @@ export function createDefaultPanelGeometry(): PanelGeometry {
 
 export function clampPanelGeometry(geometry: PanelGeometry): PanelGeometry {
   const viewport = getViewport();
-  const maxWidth = Math.max(280, viewport.width - PANEL_MARGIN * 2);
+  const maxWidth = Math.max(
+    280,
+    Math.min(PANEL_MAX_WIDTH, viewport.width - PANEL_MARGIN * 2),
+  );
   const maxHeight = Math.max(320, viewport.height - PANEL_MARGIN * 2);
   const minWidth = Math.min(PANEL_MIN_WIDTH, maxWidth);
   const minHeight = Math.min(PANEL_MIN_HEIGHT, maxHeight);
@@ -70,13 +75,13 @@ function EmptyTab({
   title,
   description,
 }: {
-  icon: string;
+  icon: UiIconComponent;
   title: string;
   description: string;
 }) {
   return (
     <div className="bvs-main-tab-empty">
-      <span aria-hidden="true">{icon}</span>
+      <span aria-hidden="true"><UiIcon icon={icon} size={24} /></span>
       <strong>{title}</strong>
       <p>{description}</p>
     </div>
@@ -87,8 +92,6 @@ export function MainPanel({
   snapshot,
   geometry: geometryProp,
   activeTab: activeTabProp,
-  modelLabel,
-  presetLabel,
   workspaceContent,
   summaryContent,
   analysisContent,
@@ -226,7 +229,7 @@ export function MainPanel({
     if (activeTab === 'analysis') {
       return analysisContent || (
         <EmptyTab
-          icon="◎"
+          icon={APP_ICONS.analysis}
           title="还没有深度分析"
           description="摘要完成后，可在这里接入弹幕、评论和全面分析结果。"
         />
@@ -235,7 +238,7 @@ export function MainPanel({
     if (activeTab === 'chat') {
       return chatContent || (
         <EmptyTab
-          icon="✦"
+          icon={APP_ICONS.chat}
           title="继续追问视频"
           description="对话服务接入后，可以基于当前分集字幕和分析结果继续提问。"
         />
@@ -247,7 +250,7 @@ export function MainPanel({
     }
     return (
       <EmptyTab
-        icon="▤"
+        icon={APP_ICONS.summary}
         title={snapshot.phase === 'summarizing' ? '摘要正在生成' : '还没有视频摘要'}
         description={snapshot.phase === 'summarizing'
           ? 'AI 返回内容后会在这里逐步显示。'
@@ -269,19 +272,23 @@ export function MainPanel({
           onPointerDown={(event) => beginInteraction('move', event)}
           title="拖动面板"
         >
-          <span className="bvs-main-brand">b</span>
+          <span className="bvs-main-brand"><UiIcon icon={APP_ICONS.logo} size={20} /></span>
           <span className="bvs-main-product-name">
-            <strong>bilibili 视频总结</strong>
+            <strong>B站视频总结</strong>
             <small>
-              迁移 Beta
-              {snapshot.video?.page ? ` · P${snapshot.video.page}` : ''}
+              {snapshot.video?.page ? `当前 P${snapshot.video.page}` : '当前视频'}
+              {' · '}{snapshot.statusMessage || '等待处理'}
             </small>
           </span>
         </div>
         <div className="bvs-main-header-actions" onPointerDown={(event) => event.stopPropagation()}>
           <span className={`bvs-main-phase-dot is-${snapshot.phase}`} title={snapshot.statusMessage} />
-          <button type="button" onClick={onOpenSettings} aria-label="打开设置" title="设置">⚙</button>
-          <button type="button" onClick={onClose} aria-label="收起面板" title="收起">—</button>
+          <button type="button" onClick={onOpenSettings} aria-label="打开设置" title="设置">
+            <UiIcon icon={APP_ICONS.settings} size={17} />
+          </button>
+          <button type="button" onClick={onClose} aria-label="收起面板" title="收起">
+            <UiIcon icon={APP_ICONS.collapse} size={17} />
+          </button>
         </div>
       </header>
 
@@ -337,14 +344,7 @@ export function MainPanel({
 
       {resultActions ? <div className="bvs-main-result-actions">{resultActions}</div> : null}
 
-      <footer className="bvs-main-footer">
-        {composer || (
-          <div className="bvs-main-footer-meta">
-            <span>{presetLabel || '默认摘要模板'}</span>
-            <span>{modelLabel || '等待选择模型'}</span>
-          </div>
-        )}
-      </footer>
+      {composer ? <footer className="bvs-main-footer">{composer}</footer> : null}
 
       <div
         className="bvs-main-resize-handle"

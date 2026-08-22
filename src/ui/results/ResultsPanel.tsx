@@ -1,4 +1,19 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from 'react';
+import {
+  APP_ICONS,
+  getPresetIcon,
+  RESULT_ACTION_ICONS,
+  RESULT_VIEW_ICONS,
+  UiIcon,
+  type UiIconComponent,
+} from '../icons';
 import resultsStyles from './results.css?inline';
 import { SafeMarkdown } from './SafeMarkdown';
 import type {
@@ -12,17 +27,16 @@ import type {
 
 interface ActionDefinition {
   key: ResultsActionKey;
-  icon: string;
+  icon: UiIconComponent;
   label: string;
   callback?: ResultAsyncCallback;
-  primary?: boolean;
 }
 
-const VIEW_ITEMS: Array<{ id: ResultsView; label: string; icon: string }> = [
-  { id: 'summary', label: '摘要', icon: '✨' },
-  { id: 'comments', label: '评论', icon: '💬' },
-  { id: 'danmaku', label: '弹幕', icon: '📡' },
-  { id: 'full-analysis', label: '全面分析', icon: '🔍' },
+const VIEW_ITEMS: Array<{ id: ResultsView; label: string; icon: UiIconComponent }> = [
+  { id: 'summary', label: '摘要', icon: RESULT_VIEW_ICONS.summary },
+  { id: 'comments', label: '评论', icon: RESULT_VIEW_ICONS.comments },
+  { id: 'danmaku', label: '弹幕', icon: RESULT_VIEW_ICONS.danmaku },
+  { id: 'full-analysis', label: '全面分析', icon: RESULT_VIEW_ICONS['full-analysis'] },
 ];
 
 const STATUS_LABEL: Record<SummaryResultStatus, string> = {
@@ -51,7 +65,7 @@ function safeImageSource(rawUrl?: string): string | undefined {
 function LoadingState({ message }: { message?: string }) {
   return (
     <div className="bvs-results-loading" role="status" aria-live="polite">
-      <span className="bvs-results-spinner" aria-hidden="true" />
+      <UiIcon className="bvs-results-spinner" icon={APP_ICONS.loading} size={21} />
       <div>
         <strong>{message || '正在整理视频内容…'}</strong>
         <span>字幕较长时需要一点时间，可以随时中断。</span>
@@ -63,7 +77,7 @@ function LoadingState({ message }: { message?: string }) {
 function EmptyState({ title, description }: { title: string; description: string }) {
   return (
     <div className="bvs-results-empty">
-      <span aria-hidden="true">◌</span>
+      <span aria-hidden="true"><UiIcon icon={APP_ICONS.empty} size={24} /></span>
       <strong>{title}</strong>
       <p>{description}</p>
     </div>
@@ -73,7 +87,7 @@ function EmptyState({ title, description }: { title: string; description: string
 function ErrorState({ message }: { message: string }) {
   return (
     <div className="bvs-results-error" role="alert">
-      <span aria-hidden="true">!</span>
+      <span aria-hidden="true"><UiIcon icon={APP_ICONS.warning} size={18} /></span>
       <div>
         <strong>处理没有完成</strong>
         <p>{message}</p>
@@ -128,9 +142,15 @@ function AnalysisView({
           </div>
           {!busy ? (
             <div className="bvs-result-actions" aria-label={`${title}操作`}>
-              <button type="button" disabled={!onCopy} onClick={() => void onCopy?.()}>⧉ 复制</button>
-              <button type="button" disabled={!onSendFlomo} onClick={() => void onSendFlomo?.()}>F 发送 Flomo</button>
-              <button type="button" disabled={!onExport} onClick={() => void onExport?.()}>TXT 导出原文</button>
+              <button type="button" disabled={!onCopy} onClick={() => void onCopy?.()}>
+                <UiIcon icon={RESULT_ACTION_ICONS.copy} size={15} />复制
+              </button>
+              <button type="button" disabled={!onSendFlomo} onClick={() => void onSendFlomo?.()}>
+                <UiIcon icon={RESULT_ACTION_ICONS.flomo} size={15} />发送 Flomo
+              </button>
+              <button type="button" disabled={!onExport} onClick={() => void onExport?.()}>
+                <UiIcon icon={RESULT_ACTION_ICONS['download-txt']} size={15} />导出原文
+              </button>
             </div>
           ) : null}
         </>
@@ -149,6 +169,11 @@ export function ResultsPanel(props: ResultsPanelProps) {
   const [question, setQuestion] = useState('');
   const [asking, setAsking] = useState(false);
   const [presetBusy, setPresetBusy] = useState('');
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [moreMenuStyle, setMoreMenuStyle] = useState<CSSProperties>();
+  const [conversationOpen, setConversationOpen] = useState(Boolean(props.conversation?.messages?.length));
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+  const conversationInputRef = useRef<HTMLTextAreaElement>(null);
   const currentView = props.activeView || uncontrolledView;
   const globallyDisabled = props.disabled === true;
   const summaryBusy = props.status === 'loading' || props.status === 'streaming';
@@ -157,17 +182,17 @@ export function ResultsPanel(props: ResultsPanelProps) {
   const actions = useMemo<ActionDefinition[]>(
     () => {
       const definitions: ActionDefinition[] = [
-      { key: 'copy', icon: '⧉', label: '复制摘要', callback: props.actions?.onCopy, primary: true },
-      { key: 'edit-summary', icon: '✎', label: '编辑摘要', callback: props.actions?.onEditSummary },
-      { key: 'regenerate', icon: '↻', label: '重新生成', callback: props.actions?.onRegenerate, primary: true },
-      { key: 'insert-comment', icon: '↗', label: '插入评论', callback: props.actions?.onInsertComment },
-      { key: 'flomo', icon: 'F', label: '发送 Flomo', callback: props.actions?.onSendFlomo },
-      { key: 'download-txt', icon: 'TXT', label: '下载字幕', callback: props.actions?.onDownloadTranscript },
-      { key: 'download-srt', icon: 'SRT', label: '下载 SRT', callback: props.actions?.onDownloadSrt },
-      { key: 'generate-image', icon: '▧', label: imageSource ? '重新生图' : '生成配图', callback: props.actions?.onGenerateImage },
-      { key: 'copy-image-prompt', icon: 'P', label: '复制生图词', callback: props.actions?.onCopyImagePrompt },
-      { key: 'save-image', icon: '↓', label: '保存图片', callback: props.actions?.onSaveImage },
-      { key: 'fill-image-comment', icon: '↗', label: '图片发评论', callback: props.actions?.onFillImageComment },
+      { key: 'copy', icon: RESULT_ACTION_ICONS.copy, label: '复制摘要', callback: props.actions?.onCopy },
+      { key: 'edit-summary', icon: RESULT_ACTION_ICONS['edit-summary'], label: '编辑摘要', callback: props.actions?.onEditSummary },
+      { key: 'regenerate', icon: RESULT_ACTION_ICONS.regenerate, label: '重新生成', callback: props.actions?.onRegenerate },
+      { key: 'insert-comment', icon: RESULT_ACTION_ICONS['insert-comment'], label: '插入评论', callback: props.actions?.onInsertComment },
+      { key: 'flomo', icon: RESULT_ACTION_ICONS.flomo, label: '发送 Flomo', callback: props.actions?.onSendFlomo },
+      { key: 'download-txt', icon: RESULT_ACTION_ICONS['download-txt'], label: '下载字幕', callback: props.actions?.onDownloadTranscript },
+      { key: 'download-srt', icon: RESULT_ACTION_ICONS['download-srt'], label: '下载 SRT', callback: props.actions?.onDownloadSrt },
+      { key: 'generate-image', icon: RESULT_ACTION_ICONS['generate-image'], label: imageSource ? '重新生图' : '生成配图', callback: props.actions?.onGenerateImage },
+      { key: 'copy-image-prompt', icon: RESULT_ACTION_ICONS['copy-image-prompt'], label: '复制生图词', callback: props.actions?.onCopyImagePrompt },
+      { key: 'save-image', icon: RESULT_ACTION_ICONS['save-image'], label: '保存图片', callback: props.actions?.onSaveImage },
+      { key: 'fill-image-comment', icon: RESULT_ACTION_ICONS['fill-image-comment'], label: '图片发评论', callback: props.actions?.onFillImageComment },
       ];
       if (!props.actionOrder?.length) return definitions;
       const order = new Map(props.actionOrder.map((key, index) => [key, index]));
@@ -188,6 +213,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
     const state = props.actionAvailability?.[action.key];
     if (!action.callback || globallyDisabled || state?.disabled || state?.loading || busyAction) return;
     setBusyAction(action.key);
+    setMoreOpen(false);
     setNotice('');
     try {
       await action.callback();
@@ -229,6 +255,61 @@ export function ResultsPanel(props: ResultsPanelProps) {
   };
 
   const conversationBusy = asking || props.conversation?.pending;
+  const primaryActions = actions.filter((action) => (
+    (action.key === 'copy' || action.key === 'regenerate')
+    && !props.actionAvailability?.[action.key]?.hidden
+  ));
+  const secondaryActions = actions.filter((action) => (
+    action.key !== 'copy'
+    && action.key !== 'regenerate'
+    && !props.actionAvailability?.[action.key]?.hidden
+  ));
+
+  useEffect(() => {
+    if (!moreOpen) return undefined;
+    const closeMenu = (event: MouseEvent) => {
+      if (!moreMenuRef.current?.contains(event.target as Node)) setMoreOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMoreOpen(false);
+    };
+    document.addEventListener('mousedown', closeMenu);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', closeMenu);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [moreOpen]);
+
+  useEffect(() => {
+    if (props.conversation?.messages?.length) setConversationOpen(true);
+  }, [props.conversation?.messages?.length]);
+
+  const openConversation = () => {
+    setConversationOpen(true);
+    window.setTimeout(() => conversationInputRef.current?.focus(), 0);
+  };
+
+  const toggleMoreMenu = () => {
+    if (moreOpen) {
+      setMoreOpen(false);
+      return;
+    }
+    const rect = moreMenuRef.current?.getBoundingClientRect();
+    if (rect) {
+      const menuWidth = 190;
+      const menuHeight = Math.min(300, secondaryActions.length * 36 + 10);
+      const canOpenAbove = rect.top >= menuHeight + 16;
+      setMoreMenuStyle({
+        left: `${Math.max(12, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12))}px`,
+        top: `${canOpenAbove
+          ? rect.top - menuHeight - 7
+          : Math.min(rect.bottom + 7, window.innerHeight - menuHeight - 12)}px`,
+        maxHeight: `${menuHeight}px`,
+      });
+    }
+    setMoreOpen(true);
+  };
 
   return (
     <section className="bvs-results-panel" aria-label="视频总结结果">
@@ -242,31 +323,33 @@ export function ResultsPanel(props: ResultsPanelProps) {
             {STATUS_LABEL[props.status]}
           </span>
         </div>
-        {props.model ? <span className="bvs-results-model" title={props.model}>AI · {props.model}</span> : null}
+        {props.model ? (
+          <span className="bvs-results-model" title={props.model}>
+            <UiIcon icon={APP_ICONS.model} size={13} />{props.model}
+          </span>
+        ) : null}
       </div>
 
       {props.presets?.length ? (
         <div className="bvs-preset-section">
-          <span>摘要风格</span>
-          <div className="bvs-preset-list" role="radiogroup" aria-label="摘要风格">
-            {props.presets.map((preset) => {
-              const active = preset.id === props.activePresetId;
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  className={active ? 'is-active' : undefined}
-                  disabled={globallyDisabled || summaryBusy || Boolean(presetBusy)}
-                  title={preset.prompt}
-                  onClick={() => void switchPreset(preset.id)}
-                >
-                  <span aria-hidden="true">{presetBusy === preset.id ? '…' : preset.icon || '•'}</span>
-                  {preset.name}
-                </button>
-              );
-            })}
+          <label htmlFor="bvs-summary-preset">摘要风格</label>
+          <div className="bvs-preset-select">
+            <UiIcon
+              className={presetBusy ? 'is-spinning' : undefined}
+              icon={presetBusy ? APP_ICONS.loading : getPresetIcon(props.activePresetId || '')}
+              size={16}
+            />
+            <select
+              id="bvs-summary-preset"
+              value={props.activePresetId || props.presets[0]?.id}
+              disabled={globallyDisabled || summaryBusy || Boolean(presetBusy)}
+              onChange={(event) => void switchPreset(event.currentTarget.value)}
+            >
+              {props.presets.map((preset) => (
+                <option key={preset.id} value={preset.id}>{preset.name}</option>
+              ))}
+            </select>
+            <UiIcon icon={APP_ICONS.expand} size={15} />
           </div>
         </div>
       ) : null}
@@ -281,7 +364,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
             className={currentView === view.id ? 'is-active' : undefined}
             onClick={() => changeView(view.id)}
           >
-            <span aria-hidden="true">{view.icon}</span>
+            <UiIcon icon={view.icon} size={15} />
             {view.label}
           </button>
         ))}
@@ -308,11 +391,13 @@ export function ResultsPanel(props: ResultsPanelProps) {
             ) : null}
             {!props.summary && props.onCopyPortablePrompt ? (
               <button className="bvs-abort-button" type="button" onClick={() => void props.onCopyPortablePrompt?.()}>
+                <UiIcon icon={APP_ICONS.portablePrompt} size={15} />
                 复制提示词 + 当前分集字幕
               </button>
             ) : null}
             {summaryBusy && props.onAbortSummary ? (
               <button className="bvs-abort-button" type="button" onClick={() => void props.onAbortSummary?.()}>
+                <UiIcon icon={APP_ICONS.stop} size={14} />
                 停止生成
               </button>
             ) : null}
@@ -327,25 +412,72 @@ export function ResultsPanel(props: ResultsPanelProps) {
             {props.imageStatusMessage ? <p className="bvs-results-message">{props.imageStatusMessage}</p> : null}
             {props.imageError ? <ErrorState message={props.imageError} /> : null}
 
-            <div className="bvs-result-actions" aria-label="摘要操作">
-              {actions.map((action) => {
+            <div className="bvs-result-toolbar" aria-label="摘要操作">
+              {primaryActions.map((action) => {
                 const state = props.actionAvailability?.[action.key];
-                if (state?.hidden) return null;
                 const pending = busyAction === action.key || state?.loading;
                 return (
                   <button
                     key={action.key}
                     type="button"
-                    className={action.primary ? 'is-primary' : undefined}
+                    className={action.key === 'copy' ? 'is-primary' : undefined}
                     disabled={globallyDisabled || summaryBusy || !action.callback || state?.disabled || pending || Boolean(busyAction)}
                     title={state?.title}
                     onClick={() => void runAction(action)}
                   >
-                    <span aria-hidden="true">{pending ? '…' : action.icon}</span>
+                    <UiIcon
+                      className={pending ? 'is-spinning' : undefined}
+                      icon={pending ? APP_ICONS.loading : action.icon}
+                      size={15}
+                    />
                     {state?.label || action.label}
                   </button>
                 );
               })}
+              <button
+                type="button"
+                disabled={globallyDisabled || !props.conversation?.onAsk}
+                onClick={openConversation}
+              >
+                <UiIcon icon={APP_ICONS.chat} size={15} />继续追问
+              </button>
+              {secondaryActions.length ? (
+                <div className="bvs-more-actions" ref={moreMenuRef}>
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    aria-expanded={moreOpen}
+                    onClick={toggleMoreMenu}
+                  >
+                    <UiIcon icon={APP_ICONS.more} size={17} />更多
+                  </button>
+                  {moreOpen ? (
+                    <div className="bvs-more-menu" role="menu" style={moreMenuStyle}>
+                      {secondaryActions.map((action) => {
+                        const state = props.actionAvailability?.[action.key];
+                        const pending = busyAction === action.key || state?.loading;
+                        return (
+                          <button
+                            key={action.key}
+                            type="button"
+                            role="menuitem"
+                            disabled={globallyDisabled || summaryBusy || !action.callback || state?.disabled || pending || Boolean(busyAction)}
+                            title={state?.title}
+                            onClick={() => void runAction(action)}
+                          >
+                            <UiIcon
+                              className={pending ? 'is-spinning' : undefined}
+                              icon={pending ? APP_ICONS.loading : action.icon}
+                              size={15}
+                            />
+                            {state?.label || action.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </>
         ) : null}
@@ -391,21 +523,42 @@ export function ResultsPanel(props: ResultsPanelProps) {
         ) : null}
       </div>
 
-      <section className="bvs-conversation" aria-label="连续追问">
-        <header>
+      <section className={`bvs-conversation${conversationOpen ? ' is-open' : ''}`} aria-label="连续追问">
+        <button
+          type="button"
+          className="bvs-conversation-toggle"
+          aria-expanded={conversationOpen}
+          onClick={() => setConversationOpen((open) => !open)}
+        >
           <div>
+            <UiIcon icon={APP_ICONS.chat} size={17} />
+            <span>
             <strong>继续追问</strong>
-            <span>答案会基于当前视频内容</span>
+              <small>答案基于当前分集内容</small>
+            </span>
           </div>
-          {conversationBusy && props.conversation?.onAbort ? (
-            <button type="button" onClick={() => void props.conversation?.onAbort?.()}>停止</button>
-          ) : null}
-        </header>
+          <UiIcon icon={APP_ICONS.expand} size={16} />
+        </button>
+        {conversationOpen ? <div className="bvs-conversation-body">
+        {conversationBusy && props.conversation?.onAbort ? (
+          <button className="bvs-conversation-stop" type="button" onClick={() => void props.conversation?.onAbort?.()}>
+            <UiIcon icon={APP_ICONS.stop} size={13} />停止回答
+          </button>
+        ) : null}
         {props.conversation?.messages?.length ? (
           <div className="bvs-conversation-messages" aria-live="polite">
             {props.conversation.messages.map((message) => (
               <article key={message.id} className={`is-${message.role}${message.error ? ' is-error' : ''}`}>
-                <span>{message.role === 'user' ? '我' : message.role === 'assistant' ? 'AI' : '系统'}</span>
+                <span>
+                  <UiIcon
+                    icon={message.role === 'user'
+                      ? APP_ICONS.user
+                      : message.role === 'assistant'
+                        ? APP_ICONS.assistant
+                        : APP_ICONS.info}
+                    size={14}
+                  />
+                </span>
                 <div>
                   {message.role === 'user' ? <p>{message.content}</p> : <SafeMarkdown content={message.content} />}
                   {message.streaming ? <i className="bvs-stream-cursor" aria-label="正在输出" /> : null}
@@ -419,6 +572,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
         )}
         <form onSubmit={(event) => void submitQuestion(event)}>
           <textarea
+            ref={conversationInputRef}
             value={question}
             rows={2}
             maxLength={4000}
@@ -442,9 +596,15 @@ export function ResultsPanel(props: ResultsPanelProps) {
               !question.trim()
             }
           >
-            {conversationBusy ? '回答中…' : '发送'}
+            <UiIcon
+              className={conversationBusy ? 'is-spinning' : undefined}
+              icon={conversationBusy ? APP_ICONS.loading : APP_ICONS.send}
+              size={15}
+            />
+            {conversationBusy ? '回答中' : '发送'}
           </button>
         </form>
+        </div> : null}
       </section>
 
       {notice ? <p className="bvs-results-notice" role="status">{notice}</p> : null}
