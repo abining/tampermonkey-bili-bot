@@ -1,4 +1,5 @@
 export type ImageGenerationMode = 'api' | 'flow';
+export type BackendSubtitleSourceMode = 'video_id' | 'page_url';
 
 export type ResultActionButtonId =
   | 'copy_summary'
@@ -73,5 +74,11 @@ export interface AppConfig {
   commentMaxDelay: number;
   autoSubmitCommentSummary: boolean;
   enableAutoDownloadSubtitle: boolean;
+  enableBackendSubtitle: boolean;
+  backendSubtitleApiUrl: string;
+  backendSubtitleApiKey: string;
+  backendSubtitleSourceMode: BackendSubtitleSourceMode;
+  backendSubtitleTimeoutSeconds: number;
+  backendSubtitlePollIntervalMs: number;
   resultActionButtons: ResultActionButtonConfig[];
 }

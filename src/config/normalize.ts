@@ -100,6 +100,17 @@ export function normalizeConfig(value: unknown): AppConfig {
   );
   merged.resultActionButtons = normalizeResultActionButtons(saved.resultActionButtons);
   merged.imageGenMode = saved.imageGenMode === 'flow' ? 'flow' : 'api';
+  merged.backendSubtitleSourceMode = saved.backendSubtitleSourceMode === 'page_url'
+    ? 'page_url'
+    : 'video_id';
+  merged.backendSubtitleTimeoutSeconds = Math.min(
+    7_200,
+    Math.max(30, Number(saved.backendSubtitleTimeoutSeconds) || defaults.backendSubtitleTimeoutSeconds),
+  );
+  merged.backendSubtitlePollIntervalMs = Math.min(
+    30_000,
+    Math.max(500, Number(saved.backendSubtitlePollIntervalMs) || defaults.backendSubtitlePollIntervalMs),
+  );
 
   merged.apiProfiles = normalizeApiProfiles(saved.apiProfiles, merged);
   if (!merged.apiProfiles.some((profile) => profile.id === merged.activeApiProfileId)) {

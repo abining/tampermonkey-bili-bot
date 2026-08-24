@@ -4,7 +4,7 @@ import type { SubtitleSegment, VideoContext } from './video-context';
 export interface SubtitleResult {
   transcript: string;
   segments: SubtitleSegment[];
-  source: 'capture' | 'api' | 'manual';
+  source: 'capture' | 'api' | 'manual' | 'backend';
 }
 
 export interface VideoPlatformAdapter {

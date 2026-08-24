@@ -425,6 +425,128 @@
   text-align: right;
 }
 
+.bvs-settings-model-editor {
+  overflow: hidden;
+  border: 1px solid #e3e5e7;
+  border-radius: 10px;
+  background: #fafbfc;
+}
+
+.bvs-settings-model-editor summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 11px;
+  list-style: none;
+  color: #61666d;
+  cursor: pointer;
+}
+
+.bvs-settings-model-editor summary::-webkit-details-marker {
+  display: none;
+}
+
+.bvs-settings-model-editor summary > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bvs-settings-model-editor summary strong {
+  color: #3c4045;
+  font-size: 11px;
+}
+
+.bvs-settings-model-editor summary small {
+  color: #9499a0;
+  font-size: 9px;
+}
+
+.bvs-settings-model-editor summary > svg {
+  transition: transform 0.16s;
+}
+
+.bvs-settings-model-editor[open] summary > svg {
+  transform: rotate(180deg);
+}
+
+.bvs-settings-model-editor > div {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 10px;
+  border-top: 1px solid #e8ebef;
+  background: #fff;
+}
+
+.bvs-settings-model-editor textarea {
+  width: 100%;
+  min-height: 120px;
+  border: 1px solid #d8dadd;
+  border-radius: 9px;
+  padding: 10px 11px;
+  outline: 0;
+  color: #3c4045;
+  background: #fff;
+  font: 11px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  resize: vertical;
+}
+
+.bvs-settings-model-editor textarea:focus {
+  border-color: #00aeec;
+  box-shadow: 0 0 0 3px rgb(0 174 236 / 10%);
+}
+
+.bvs-settings-backend-contract {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  border-color: #cceefa;
+  background: linear-gradient(145deg, #f6fcff, #fff);
+}
+
+.bvs-settings-backend-contract > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #008ac5;
+}
+
+.bvs-settings-backend-contract > div > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bvs-settings-backend-contract strong {
+  color: #3c4045;
+  font-size: 12px;
+}
+
+.bvs-settings-backend-contract small,
+.bvs-settings-backend-contract p {
+  color: #7a7f87;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.bvs-settings-backend-contract code {
+  overflow-wrap: anywhere;
+  border: 1px solid #dbeef5;
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: #0079aa;
+  background: #fff;
+  font: 10px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.bvs-settings-backend-contract p {
+  margin: 0;
+}
+
 .bvs-settings-profile-layout {
   display: grid;
   min-height: 420px;

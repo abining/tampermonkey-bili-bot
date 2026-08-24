@@ -4,6 +4,10 @@ import type {
 } from '../../contracts/runtime';
 import type { VideoContext } from '../../contracts/video-context';
 import {
+  fetchSubtitleFromBackend,
+  type BackendSubtitleServiceConfig,
+} from '../../services/backend-subtitle';
+import {
   createCapturedSubtitleResult,
   clearRouteCaptureState,
   installSubtitleCapture,
@@ -42,6 +46,7 @@ export interface BilibiliPlatformAdapterOptions {
   getRouteGeneration?: () => number;
   captureWaitTimeoutMs?: number;
   onSubtitleStatus?: (message: string) => void;
+  getBackendSubtitleConfig?: () => BackendSubtitleServiceConfig;
 }
 
 export class BilibiliPlatformAdapter implements VideoPlatformAdapter {
@@ -90,9 +95,29 @@ export class BilibiliPlatformAdapter implements VideoPlatformAdapter {
       this.cacheSubtitle(contextKey, captured);
       return captured;
     }
-    const fetched = await this.fetchSubtitleWithRetry(context, signal, freshness);
+    let fetched: SubtitleResult | null = null;
+    try {
+      fetched = await this.fetchSubtitleWithRetry(context, signal, freshness);
+    } catch (error) {
+      if (isAbortError(error) || isStaleVideoContextError(error)) throw error;
+      const backendConfig = this.options.getBackendSubtitleConfig?.();
+      if (!backendConfig?.enabled || !backendConfig.apiUrl) throw error;
+      console.warn('[bilibili-bot] B站字幕接口失败，回退字幕后端', error);
+    }
     if (fetched) this.cacheSubtitle(contextKey, fetched);
-    return fetched;
+    if (fetched) return fetched;
+
+    const backendConfig = this.options.getBackendSubtitleConfig?.();
+    if (!backendConfig?.enabled || !backendConfig.apiUrl) return null;
+    const backendSubtitle = await fetchSubtitleFromBackend(
+      context,
+      backendConfig,
+      signal,
+      { onStatus: this.options.onSubtitleStatus },
+    );
+    throwIfStale(freshness);
+    if (backendSubtitle) this.cacheSubtitle(contextKey, backendSubtitle);
+    return backendSubtitle;
   }
 
   private cacheSubtitle(contextKey: string, subtitle: SubtitleResult): void {

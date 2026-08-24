@@ -7,6 +7,7 @@
 - 按当前 BVID、CID 和 P 号提取并隔离字幕、摘要与分析结果。
 - 支持 OpenAI 兼容接口、流式摘要、模型列表、摘要预设和连续追问。
 - 支持评论、弹幕、全面分析、手动字幕、TXT/SRT 下载和评论区填充。
+- 支持配置字幕转写后端；接口约定见 [`docs/backend-subtitle-api.md`](docs/backend-subtitle-api.md)。
 - 支持 API 生图、Google Flow、Flomo 和配置导入导出。
 - 使用 React Shadow DOM 面板，支持拖动、缩放、悬浮按钮和位置持久化。
 - 兼容旧版配置与摘要缓存迁移。

@@ -1,6 +1,5 @@
 import {
   useEffect,
-  useId,
   useMemo,
   useState,
   type ReactNode,
@@ -9,6 +8,7 @@ import {
   createApiProfileId,
   type ApiProfile,
   type AppConfig,
+  type BackendSubtitleSourceMode,
   type PromptPreset,
   type ResultActionButtonId,
 } from '../../config';
@@ -20,11 +20,13 @@ import {
   UiIcon,
   type UiIconComponent,
 } from '../icons';
+import { UiSelect } from '../components/UiSelect';
 import type { SettingsPanelProps } from './types';
 
 type SettingsSectionId =
   | 'general'
   | 'ai'
+  | 'subtitles'
   | 'summary'
   | 'analysis'
   | 'image'
@@ -41,6 +43,7 @@ interface SettingsSection {
 const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: 'general', label: '通用', icon: SETTINGS_SECTION_ICONS.general, description: '自动解析与基础行为' },
   { id: 'ai', label: 'AI 与模型', icon: SETTINGS_SECTION_ICONS.ai, description: '接口、密钥与模型配置' },
+  { id: 'subtitles', label: '字幕后端', icon: SETTINGS_SECTION_ICONS.subtitles, description: '无字幕时交给后端转写' },
   { id: 'summary', label: '摘要模板', icon: SETTINGS_SECTION_ICONS.summary, description: '摘要风格与提示词' },
   { id: 'analysis', label: '内容分析', icon: SETTINGS_SECTION_ICONS.analysis, description: '评论、弹幕与全面分析' },
   { id: 'image', label: '配图', icon: SETTINGS_SECTION_ICONS.image, description: 'API 生图与 Google Flow' },
@@ -266,10 +269,10 @@ export function SettingsPanel({
   const [activeSection, setActiveSection] = useState<SettingsSectionId>('general');
   const [showApiKey, setShowApiKey] = useState(false);
   const [showImageApiKey, setShowImageApiKey] = useState(false);
+  const [showBackendSubtitleApiKey, setShowBackendSubtitleApiKey] = useState(false);
   const [includeSecrets, setIncludeSecrets] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const modelListId = useId();
 
   useEffect(() => {
     setDraft(cloneConfig(config));
@@ -403,6 +406,7 @@ export function SettingsPanel({
       setDraft(cloneConfig(reset));
       setShowApiKey(false);
       setShowImageApiKey(false);
+      setShowBackendSubtitleApiKey(false);
     }
   });
 
@@ -479,7 +483,9 @@ export function SettingsPanel({
       <aside className="bvs-settings-profile-list">
         <div className="bvs-settings-profile-list-header">
           <strong>API 配置</strong>
-          <button type="button" onClick={addProfile} title="新增 API 配置">＋</button>
+          <button type="button" onClick={addProfile} title="新增 API 配置">
+            <UiIcon icon={APP_ICONS.add} size={15} />
+          </button>
         </div>
         {draft.apiProfiles.map((profile) => (
           <button
@@ -502,15 +508,19 @@ export function SettingsPanel({
                 onChange={(event) => updateProfile({ name: event.currentTarget.value })}
               />
             </Field>
-            <Field label="默认模型">
-              <input
-                list={modelListId}
+            <Field label="模型列表" hint="选择当前 API 配置默认使用的模型。">
+              <UiSelect
+                ariaLabel="默认模型"
+                searchable
+                searchPlaceholder="搜索模型"
                 value={activeProfile.model}
-                onChange={(event) => updateProfile({ model: event.currentTarget.value })}
+                placeholder={activeProfile.modelList.length ? '选择模型' : '请先获取或添加模型'}
+                options={[...new Set([
+                  activeProfile.model,
+                  ...activeProfile.modelList,
+                ].filter(Boolean))].map((model) => ({ value: model, label: model }))}
+                onChange={(model) => updateProfile({ model })}
               />
-              <datalist id={modelListId}>
-                {activeProfile.modelList.map((model) => <option key={model} value={model} />)}
-              </datalist>
             </Field>
             <Field
               label="API 地址"
@@ -537,30 +547,42 @@ export function SettingsPanel({
                 </button>
               </div>
             </Field>
-            <Field label="模型列表" hint="每行一个模型，供主界面的模型选择器使用。" wide>
-              {onFetchModels ? (
-                <div className="bvs-settings-model-actions">
-                  <button
-                    type="button"
-                    disabled={isBusy || !activeProfile.apiUrl || !activeProfile.apiKey}
-                    onClick={() => void fetchActiveProfileModels()}
-                  >
-                    从 API 获取模型
-                  </button>
-                  <span>请求只使用当前草稿中的地址和密钥，不会输出密钥。</span>
+            <div className="bvs-settings-field is-wide">
+              <details className="bvs-settings-model-editor">
+                <summary>
+                  <span>
+                    <strong>管理可用模型</strong>
+                    <small>{activeProfile.modelList.length} 个模型 · 支持 API 获取或手动编辑</small>
+                  </span>
+                  <UiIcon icon={APP_ICONS.expand} size={16} />
+                </summary>
+                <div>
+                  {onFetchModels ? (
+                    <div className="bvs-settings-model-actions">
+                      <button
+                        type="button"
+                        disabled={isBusy || !activeProfile.apiUrl || !activeProfile.apiKey}
+                        onClick={() => void fetchActiveProfileModels()}
+                      >
+                        <UiIcon icon={APP_ICONS.retry} size={14} />从 API 获取模型
+                      </button>
+                      <span>请求仅使用当前草稿中的地址和密钥。</span>
+                    </div>
+                  ) : null}
+                  <textarea
+                    rows={7}
+                    value={activeProfile.modelList.join('\n')}
+                    placeholder="每行一个模型名称"
+                    onChange={(event) => updateProfile({
+                      modelList: event.currentTarget.value
+                        .split('\n')
+                        .map((model) => model.trim())
+                        .filter(Boolean),
+                    })}
+                  />
                 </div>
-              ) : null}
-              <textarea
-                rows={8}
-                value={activeProfile.modelList.join('\n')}
-                onChange={(event) => updateProfile({
-                  modelList: event.currentTarget.value
-                    .split('\n')
-                    .map((model) => model.trim())
-                    .filter(Boolean),
-                })}
-              />
-            </Field>
+              </details>
+            </div>
           </div>
           <div className="bvs-settings-profile-actions">
             <button type="button" onClick={duplicateProfile}>复制配置</button>
@@ -590,6 +612,109 @@ export function SettingsPanel({
         activePresetId,
       }))}
     />
+  );
+
+  const renderSubtitles = () => (
+    <div className="bvs-settings-card-stack">
+      <div className="bvs-settings-card">
+        <SwitchField
+          label="启用字幕后端"
+          description="B站播放器和字幕接口均未获取到字幕时，把当前分集交给后端转写。"
+          checked={draft.enableBackendSubtitle}
+          onChange={(checked) => updateConfig('enableBackendSubtitle', checked)}
+        />
+      </div>
+      <div className="bvs-settings-card bvs-settings-grid">
+        <Field label="提交方式" hint="推荐发送视频 ID，由后端负责下载视频或音频。">
+          <UiSelect
+            ariaLabel="字幕后端提交方式"
+            value={draft.backendSubtitleSourceMode}
+            options={[
+              {
+                value: 'video_id',
+                label: '视频 ID（推荐）',
+                description: '发送 BVID、CID、P 和视频元数据',
+                icon: SETTINGS_SECTION_ICONS.subtitles,
+              },
+              {
+                value: 'page_url',
+                label: '页面链接',
+                description: '发送当前分集完整 URL',
+                icon: APP_ICONS.portablePrompt,
+              },
+            ]}
+            onChange={(value) => updateConfig(
+              'backendSubtitleSourceMode',
+              value as BackendSubtitleSourceMode,
+            )}
+          />
+        </Field>
+        <Field label="任务超时（秒）" hint="包含后端排队、下载视频和语音识别时间。">
+          <input
+            type="number"
+            min={30}
+            max={7200}
+            value={draft.backendSubtitleTimeoutSeconds}
+            onChange={(event) => updateConfig(
+              'backendSubtitleTimeoutSeconds',
+              Number(event.currentTarget.value),
+            )}
+          />
+        </Field>
+        <Field
+          label="任务提交地址"
+          hint="填写完整 POST 地址，例如 https://example.com/v1/subtitle-jobs。"
+          wide
+        >
+          <input
+            value={draft.backendSubtitleApiUrl}
+            placeholder="https://example.com/v1/subtitle-jobs"
+            onChange={(event) => updateConfig('backendSubtitleApiUrl', event.currentTarget.value)}
+          />
+        </Field>
+        <Field label="后端 API Key" hint="通过 Authorization: Bearer 发送；导出配置时默认移除。" wide>
+          <div className="bvs-settings-password-input">
+            <input
+              type={showBackendSubtitleApiKey ? 'text' : 'password'}
+              value={draft.backendSubtitleApiKey}
+              autoComplete="off"
+              placeholder="可选"
+              onChange={(event) => updateConfig('backendSubtitleApiKey', event.currentTarget.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowBackendSubtitleApiKey((visible) => !visible)}
+            >
+              {showBackendSubtitleApiKey ? '隐藏' : '显示'}
+            </button>
+          </div>
+        </Field>
+        <Field label="轮询间隔（毫秒）" hint="异步任务未完成时查询任务状态的间隔。">
+          <input
+            type="number"
+            min={500}
+            max={30000}
+            step={500}
+            value={draft.backendSubtitlePollIntervalMs}
+            onChange={(event) => updateConfig(
+              'backendSubtitlePollIntervalMs',
+              Number(event.currentTarget.value),
+            )}
+          />
+        </Field>
+      </div>
+      <div className="bvs-settings-card bvs-settings-backend-contract">
+        <div>
+          <UiIcon icon={SETTINGS_SECTION_ICONS.subtitles} size={18} />
+          <span>
+            <strong>推荐的后端职责</strong>
+            <small>接收视频标识 → 下载当前分集 → 提取音频 → 语音识别 → 返回字幕文件或任务地址。</small>
+          </span>
+        </div>
+        <code>POST 字幕任务地址 · GET status_url · 返回 transcript / segments / subtitle_url</code>
+        <p>油猴脚本不会上传完整视频文件。这样可以避免浏览器登录态、跨域、上传体积和断点续传问题。</p>
+      </div>
+    </div>
   );
 
   const renderAnalysis = () => (
@@ -694,16 +819,15 @@ export function SettingsPanel({
       </div>
       <div className="bvs-settings-card bvs-settings-grid">
         <Field label="生图方式">
-          <select
+          <UiSelect
+            ariaLabel="生图方式"
             value={draft.imageGenMode}
-            onChange={(event) => updateConfig(
-              'imageGenMode',
-              event.currentTarget.value === 'flow' ? 'flow' : 'api',
-            )}
-          >
-            <option value="api">API 生图</option>
-            <option value="flow">Google Flow</option>
-          </select>
+            options={[
+              { value: 'api', label: 'API 生图', icon: SETTINGS_SECTION_ICONS.image },
+              { value: 'flow', label: 'Google Flow', icon: SETTINGS_SECTION_ICONS.services },
+            ]}
+            onChange={(value) => updateConfig('imageGenMode', value === 'flow' ? 'flow' : 'api')}
+          />
         </Field>
         <Field label="图片尺寸">
           <input
@@ -906,6 +1030,7 @@ export function SettingsPanel({
   const renderActiveSection = () => {
     switch (activeSection) {
       case 'ai': return renderAi();
+      case 'subtitles': return renderSubtitles();
       case 'summary': return renderSummary();
       case 'analysis': return renderAnalysis();
       case 'image': return renderImage();

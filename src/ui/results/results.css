@@ -794,42 +794,18 @@
   gap: 9px;
 }
 
-.bvs-preset-section > label {
+.bvs-preset-section > span {
   color: var(--bvs-muted);
   font-size: 11px;
   font-weight: 650;
 }
 
-.bvs-preset-select {
-  position: relative;
-  display: flex;
+.bvs-results-preset-select {
   min-width: 0;
-  height: 34px;
-  align-items: center;
-  gap: 7px;
-  border: 1px solid var(--bvs-line);
-  border-radius: 9px;
-  padding: 0 9px;
-  color: #008ac5;
-  background: var(--bvs-surface);
 }
 
-.bvs-preset-select select {
-  min-width: 0;
-  flex: 1;
-  border: 0;
-  outline: 0;
-  color: #3c4045;
-  background: transparent;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 650;
-  appearance: none;
-}
-
-.bvs-preset-select:focus-within {
-  border-color: #8bd8f3;
-  box-shadow: 0 0 0 3px rgb(0 174 236 / 8%);
+.bvs-results-preset-select .bvs-ui-select-trigger {
+  min-height: 34px;
 }
 
 .bvs-results-tabs {

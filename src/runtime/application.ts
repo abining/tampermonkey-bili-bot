@@ -33,6 +33,17 @@ export class BilibiliApplication {
   private readonly platform = new BilibiliPlatformAdapter({
     getRouteGeneration: () => appController.getSnapshot().routeGeneration,
     onSubtitleStatus: (statusMessage) => appController.update({ statusMessage }),
+    getBackendSubtitleConfig: () => {
+      const config = configController.getSnapshot().config;
+      return {
+        enabled: config.enableBackendSubtitle,
+        apiUrl: config.backendSubtitleApiUrl,
+        apiKey: config.backendSubtitleApiKey,
+        sourceMode: config.backendSubtitleSourceMode,
+        timeoutSeconds: config.backendSubtitleTimeoutSeconds,
+        pollIntervalMs: config.backendSubtitlePollIntervalMs,
+      };
+    },
   });
   private readonly featureController = new FeatureController(
     appController,

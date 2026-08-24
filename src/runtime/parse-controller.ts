@@ -172,7 +172,11 @@ export class ParseController {
     app.update({
       transcript: subtitle.transcript,
       subtitleSegments: subtitle.segments,
-      statusMessage: subtitle.source === 'manual' ? '已使用手动字幕' : app.getSnapshot().statusMessage,
+      statusMessage: subtitle.source === 'manual'
+        ? '已使用手动字幕'
+        : subtitle.source === 'backend'
+          ? '已通过字幕后端获取当前分集字幕'
+          : app.getSnapshot().statusMessage,
     });
     await this.dependencies.onSubtitleReady?.(context, subtitle);
     if (!this.isCurrent(generation, contextKey)) return;

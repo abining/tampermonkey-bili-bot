@@ -22,6 +22,7 @@ export function createExportConfig(
 
   exported.apiKey = '';
   exported.imageGenApiKey = '';
+  exported.backendSubtitleApiKey = '';
   exported.apiProfiles = exported.apiProfiles.map((profile) => ({
     ...profile,
     apiKey: '',

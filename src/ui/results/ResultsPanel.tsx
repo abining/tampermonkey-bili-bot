@@ -14,6 +14,7 @@ import {
   UiIcon,
   type UiIconComponent,
 } from '../icons';
+import { UiSelect } from '../components/UiSelect';
 import resultsStyles from './results.css?inline';
 import { SafeMarkdown } from './SafeMarkdown';
 import type {
@@ -332,25 +333,20 @@ export function ResultsPanel(props: ResultsPanelProps) {
 
       {props.presets?.length ? (
         <div className="bvs-preset-section">
-          <label htmlFor="bvs-summary-preset">摘要风格</label>
-          <div className="bvs-preset-select">
-            <UiIcon
-              className={presetBusy ? 'is-spinning' : undefined}
-              icon={presetBusy ? APP_ICONS.loading : getPresetIcon(props.activePresetId || '')}
-              size={16}
-            />
-            <select
-              id="bvs-summary-preset"
-              value={props.activePresetId || props.presets[0]?.id}
-              disabled={globallyDisabled || summaryBusy || Boolean(presetBusy)}
-              onChange={(event) => void switchPreset(event.currentTarget.value)}
-            >
-              {props.presets.map((preset) => (
-                <option key={preset.id} value={preset.id}>{preset.name}</option>
-              ))}
-            </select>
-            <UiIcon icon={APP_ICONS.expand} size={15} />
-          </div>
+          <span>摘要风格</span>
+          <UiSelect
+            className="bvs-results-preset-select"
+            ariaLabel="摘要风格"
+            value={props.activePresetId || props.presets[0]?.id || ''}
+            disabled={globallyDisabled || summaryBusy || Boolean(presetBusy)}
+            options={props.presets.map((preset) => ({
+              value: preset.id,
+              label: preset.name,
+              description: preset.prompt ? preset.prompt.slice(0, 56) : undefined,
+              icon: getPresetIcon(preset.id),
+            }))}
+            onChange={(presetId) => void switchPreset(presetId)}
+          />
         </div>
       ) : null}
 

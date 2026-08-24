@@ -1,5 +1,6 @@
 export * from './ai-client';
 export * from './api-url';
+export * from './backend-subtitle';
 export * from './download-service';
 export * from './flomo-service';
 export * from './flow-dispatch';

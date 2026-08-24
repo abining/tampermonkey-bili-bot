@@ -14,6 +14,208 @@ button {
   font: inherit;
 }
 
+.bvs-ui-select {
+  position: relative;
+  min-width: 0;
+}
+
+.bvs-ui-select-trigger {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #d8dadd;
+  border-radius: 10px;
+  padding: 6px 10px;
+  outline: 0;
+  color: #3c4045;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.16s, box-shadow 0.16s, background 0.16s;
+}
+
+.bvs-ui-select-trigger:hover:not(:disabled) {
+  border-color: #8bd8f3;
+  background: #fbfdff;
+}
+
+.bvs-ui-select.is-open .bvs-ui-select-trigger,
+.bvs-ui-select-trigger:focus-visible {
+  border-color: #00aeec;
+  box-shadow: 0 0 0 3px rgb(0 174 236 / 10%);
+}
+
+.bvs-ui-select-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bvs-ui-select-value {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  color: #008ac5;
+}
+
+.bvs-ui-select-value > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.bvs-ui-select-value strong,
+.bvs-ui-select-value small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bvs-ui-select-value strong {
+  color: #3c4045;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.bvs-ui-select-value small {
+  margin-top: 1px;
+  color: #9499a0;
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.bvs-ui-select-chevron {
+  flex: 0 0 auto;
+  color: #9499a0;
+  transition: transform 0.16s;
+}
+
+.bvs-ui-select.is-open .bvs-ui-select-chevron {
+  transform: rotate(180deg);
+}
+
+.bvs-ui-select-menu {
+  position: fixed;
+  z-index: 10000040;
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  border: 1px solid #dfe3e8;
+  border-radius: 12px;
+  padding: 5px;
+  color: #3c4045;
+  background: #fff;
+  box-shadow: 0 18px 48px rgb(15 23 42 / 20%);
+}
+
+.bvs-ui-select-search {
+  display: flex;
+  min-height: 38px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+  border: 1px solid #e3e5e7;
+  border-radius: 8px;
+  padding: 0 9px;
+  color: #9499a0;
+  background: #f7f8fa;
+}
+
+.bvs-ui-select-search input {
+  min-width: 0;
+  height: 34px;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  color: #3c4045;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+}
+
+.bvs-ui-select-options {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.bvs-ui-select-options > button {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: #3c4045;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bvs-ui-select-options > button:hover:not(:disabled) {
+  color: #0079aa;
+  background: #eaf8fd;
+}
+
+.bvs-ui-select-options > button.is-selected {
+  color: #0079aa;
+  background: #f1fbff;
+}
+
+.bvs-ui-select-options > button > svg:last-child {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.bvs-ui-select-option-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  color: #008ac5;
+  background: #eaf8fd;
+}
+
+.bvs-ui-select-option-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.bvs-ui-select-option-copy strong {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bvs-ui-select-option-copy small {
+  overflow: hidden;
+  margin-top: 1px;
+  color: #9499a0;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bvs-ui-select-empty {
+  margin: 0;
+  padding: 18px 10px;
+  color: #9499a0;
+  font-size: 11px;
+  text-align: center;
+}
+
 .bvs-float-button {
   position: fixed;
   right: 24px;

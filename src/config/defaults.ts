@@ -77,6 +77,12 @@ const DEFAULT_CONFIG_VALUE: AppConfig = {
   commentMaxDelay: 3800,
   autoSubmitCommentSummary: false,
   enableAutoDownloadSubtitle: false,
+  enableBackendSubtitle: false,
+  backendSubtitleApiUrl: '',
+  backendSubtitleApiKey: '',
+  backendSubtitleSourceMode: 'video_id',
+  backendSubtitleTimeoutSeconds: 900,
+  backendSubtitlePollIntervalMs: 2_000,
   resultActionButtons: getDefaultResultActionButtons(),
 };
 

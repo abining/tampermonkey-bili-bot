@@ -8,11 +8,13 @@ import {
   Captions,
   CaptionsOff,
   ChartNoAxesCombined,
+  Check,
   CheckCircle2,
   ChevronDown,
   CirclePlay,
   ClipboardPaste,
   Clock3,
+  CloudDownload,
   Copy,
   CopyPlus,
   Cpu,
@@ -46,6 +48,7 @@ import {
   RotateCcw,
   ScanSearch,
   SearchCheck,
+  Search,
   Send,
   Settings,
   Share2,
@@ -108,6 +111,8 @@ export const APP_ICONS = {
   palette: Palette,
   more: MoreHorizontal,
   portablePrompt: CopyPlus,
+  check: Check,
+  search: Search,
 } satisfies Record<string, LucideIcon>;
 
 export const PHASE_ICONS: Record<AppPhase, LucideIcon> = {
@@ -150,6 +155,7 @@ export const SETTINGS_SECTION_ICONS = {
   image: Image,
   services: Share2,
   data: Database,
+  subtitles: CloudDownload,
 } satisfies Record<string, LucideIcon>;
 
 const PRESET_ICONS: Record<string, LucideIcon> = {
