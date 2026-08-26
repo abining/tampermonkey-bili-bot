@@ -53,9 +53,12 @@ jobs:
         run: |
           artifact="dist/bilibili-video-summary-beta.user.js"
           version="${GITHUB_REF_NAME#v}"
+          release_asset_url="https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/bilibili-video-summary-beta.user.js"
 
           test -f "${artifact}"
           grep -Fq "// @version      ${version}" "${artifact}"
+          grep -Fq "// @downloadURL  ${release_asset_url}" "${artifact}"
+          grep -Fq "// @updateURL    ${release_asset_url}" "${artifact}"
 
       - name: Create GitHub Release
         env:
@@ -67,14 +70,15 @@ jobs:
             --repo "${GITHUB_REPOSITORY}"
             --title "${GITHUB_REF_NAME}"
             --generate-notes
+            --latest
             --verify-tag
           )
 
-          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
-            release_args+=(--prerelease)
-          fi
-
           if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release edit "${GITHUB_REF_NAME}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --prerelease=false \
+              --latest
             gh release upload "${GITHUB_REF_NAME}" "${artifact}" \
               --repo "${GITHUB_REPOSITORY}" \
               --clobber

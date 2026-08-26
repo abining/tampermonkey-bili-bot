@@ -11,7 +11,10 @@ export default defineConfig({
       userscript: {
         name: 'bilibili-视频总结 Beta',
         namespace: 'https://github.com/abining/tampermonkey-bili-bot',
-        version: '0.1.0-beta.1',
+        downloadURL:
+          'https://github.com/abining/tampermonkey-bili-bot/releases/latest/download/bilibili-video-summary-beta.user.js',
+        updateURL:
+          'https://github.com/abining/tampermonkey-bili-bot/releases/latest/download/bilibili-video-summary-beta.user.js',
         description: '提取 B站视频字幕并生成 AI 总结，支持多 P、持续对话、评论弹幕分析、配图与 Flow 联动。',
         author: 'abining',
         icon: 'https://www.bilibili.com/favicon.ico',
