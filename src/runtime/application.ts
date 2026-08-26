@@ -1,7 +1,7 @@
 import { buildSummaryCacheKey, getCachedSummary, setCachedSummary } from '../cache';
 import type { SummaryRequest } from '../contracts/runtime';
 import { createVideoContextKey } from '../contracts/video-context';
-import { BilibiliPlatformAdapter } from '../platform/bilibili';
+import { BilibiliPlatformAdapter, buildAiTranscript } from '../platform/bilibili';
 import { appController } from './app-controller';
 import { configController } from './config-controller';
 import { ParseController } from './parse-controller';
@@ -24,7 +24,7 @@ function createCacheKey(request: SummaryRequest): string {
     request.model,
     request.presetId,
     request.prompt,
-    request.transcript,
+    buildAiTranscript(request.segments, request.transcript),
   );
 }
 

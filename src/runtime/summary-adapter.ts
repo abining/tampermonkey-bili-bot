@@ -1,6 +1,7 @@
 import type { SummaryRequest, SummaryService } from '../contracts/runtime';
 import type { ConfigController } from './config-controller';
 import { DEFAULT_CONFIG } from '../config';
+import { buildAiTranscript } from '../platform/bilibili/subtitle-format';
 import { checkApiConfigured, requestSummary } from '../services';
 
 const SUMMARY_LENGTH_ERROR_MESSAGE = 'AI 输出被截断：finish_reason=length。请在设置中调大摘要最大输出 tokens，或更换支持更大输出上限的模型/API。';
@@ -23,9 +24,10 @@ export class RuntimeSummaryService implements SummaryService {
     if (!connection.configured) {
       throw new Error(`${connection.reason}。你仍可复制“提示词 + 当前分集字幕”到其他 AI 使用。`);
     }
+    const transcript = buildAiTranscript(request.segments, request.transcript);
     const result = await requestSummary({
       instruction: request.prompt,
-      transcript: request.transcript,
+      transcript,
       video: {
         title: request.context.title,
         collectionTitle: request.context.collectionTitle,

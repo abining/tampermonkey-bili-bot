@@ -126,7 +126,7 @@ export function buildPortableSummaryPrompt(options: PortablePromptOptions): stri
   parts.push(options.hasTimeline ? '===== 📄 字幕内容（带时间轴） =====' : '===== 📄 字幕内容 =====');
   if (options.hasTimeline) {
     parts.push(
-      '说明：下方字幕包含 [开始-结束] 时间范围。回答涉及具体片段时，请尽量带上对应时间范围。',
+      '说明：下方先给出字幕覆盖范围总览，再给出每个片段的 [开始-结束] 时间范围。回答涉及具体片段时，请尽量带上对应时间范围。',
     );
   }
   parts.push(options.transcript, '', '===== 💡 使用说明 =====');

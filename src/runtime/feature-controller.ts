@@ -20,6 +20,7 @@ import {
   type DownloadResult,
 } from '../services';
 import {
+  buildAiTranscript,
   buildSubtitleLocatorContext,
   fetchAllComments,
   fetchAllDanmaku,
@@ -262,9 +263,10 @@ export class FeatureController {
     if (!snapshot.video || !snapshot.transcript.trim()) throw new Error('没有可复制的字幕内容');
     const config = this.config.getSnapshot().config;
     const preset = config.promptPresets.find((item) => item.id === config.activePresetId);
+    const transcript = buildAiTranscript(snapshot.subtitleSegments, snapshot.transcript);
     const prompt = buildPortableSummaryPrompt({
       instruction: preset?.prompt || config.promptText,
-      transcript: snapshot.transcript,
+      transcript,
       video: {
         title: snapshot.video.title,
         collectionTitle: snapshot.video.collectionTitle,
