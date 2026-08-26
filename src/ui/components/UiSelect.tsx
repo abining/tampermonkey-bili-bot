@@ -28,6 +28,10 @@ export interface UiSelectProps {
   ariaLabel?: string;
 }
 
+function eventPathIncludes(event: Event, node: Node | null): boolean {
+  return Boolean(node && event.composedPath().includes(node));
+}
+
 export function UiSelect({
   value,
   options,
@@ -75,10 +79,13 @@ export function UiSelect({
     const availableAbove = rect.top - 12;
     const openAbove = availableBelow < Math.min(menuHeight, 180) && availableAbove > availableBelow;
     const maxHeight = Math.max(92, Math.min(menuHeight, openAbove ? availableAbove : availableBelow));
+    const hasDescriptions = options.some((option) => Boolean(option.description));
+    const preferredWidth = searchable || hasDescriptions ? Math.max(rect.width, 260) : rect.width;
+    const menuWidth = Math.min(preferredWidth, window.innerWidth - 24);
     setMenuStyle({
-      left: `${Math.max(12, Math.min(rect.left, window.innerWidth - rect.width - 12))}px`,
+      left: `${Math.max(12, Math.min(rect.left, window.innerWidth - menuWidth - 12))}px`,
       top: `${openAbove ? Math.max(12, rect.top - maxHeight - 6) : rect.bottom + 6}px`,
-      width: `${rect.width}px`,
+      width: `${menuWidth}px`,
       maxHeight: `${maxHeight}px`,
     });
     setOpen(true);
@@ -88,7 +95,7 @@ export function UiSelect({
   useEffect(() => {
     if (!open) return undefined;
     const handlePointerDown = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) close();
+      if (!eventPathIncludes(event, rootRef.current)) close();
     };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -97,7 +104,7 @@ export function UiSelect({
       }
     };
     const handleViewportChange = (event: Event) => {
-      if (menuRef.current?.contains(event.target as Node)) return;
+      if (eventPathIncludes(event, menuRef.current)) return;
       close();
     };
     document.addEventListener('mousedown', handlePointerDown);

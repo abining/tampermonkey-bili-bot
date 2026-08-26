@@ -43,7 +43,9 @@ export default defineConfig({
     }),
   ],
   build: {
-    minify: 'oxc',
+    // 保持用户脚本可审阅，禁止压缩或变量混淆。
+    minify: false,
+    cssMinify: false,
     sourcemap: false,
   },
 });

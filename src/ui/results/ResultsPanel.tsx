@@ -269,7 +269,9 @@ export function ResultsPanel(props: ResultsPanelProps) {
   useEffect(() => {
     if (!moreOpen) return undefined;
     const closeMenu = (event: MouseEvent) => {
-      if (!moreMenuRef.current?.contains(event.target as Node)) setMoreOpen(false);
+      if (!moreMenuRef.current || !event.composedPath().includes(moreMenuRef.current)) {
+        setMoreOpen(false);
+      }
     };
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setMoreOpen(false);
