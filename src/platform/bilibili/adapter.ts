@@ -20,6 +20,8 @@ import {
 import {
   fetchSubtitleContent,
   fetchSubtitleDescriptorsResult,
+  getSubtitleTimelineEnd,
+  isSubtitleTimelinePlausible,
   pickPreferredSubtitle,
 } from './subtitle-api';
 import { formatTranscript } from './subtitle-format';
@@ -193,6 +195,7 @@ export class BilibiliPlatformAdapter implements VideoPlatformAdapter {
 
   private async resolveDescriptorResult(
     result: SubtitleDescriptorResult,
+    context: VideoContext,
     signal: AbortSignal,
     freshness: RouteFreshness,
   ): Promise<SubtitleResult | null> {
@@ -202,6 +205,15 @@ export class BilibiliPlatformAdapter implements VideoPlatformAdapter {
     const segments = await fetchSubtitleContent(descriptor.subtitle_url, signal, freshness);
     const transcript = formatTranscript(segments);
     if (!segments.length || !transcript.trim()) return null;
+    if (!isSubtitleTimelinePlausible(segments, context.duration)) {
+      console.warn('[bilibili-bot] 字幕时间轴超过当前视频时长，已拒绝使用', {
+        bvid: context.bvid,
+        cid: context.cid,
+        videoDuration: context.duration,
+        subtitleEnd: getSubtitleTimelineEnd(segments),
+      });
+      return null;
+    }
     return { transcript, segments, source: 'api' };
   }
 
@@ -217,7 +229,7 @@ export class BilibiliPlatformAdapter implements VideoPlatformAdapter {
       signal,
       freshness,
     );
-    const firstResolved = await this.resolveDescriptorResult(first, signal, freshness);
+    const firstResolved = await this.resolveDescriptorResult(first, context, signal, freshness);
     if (firstResolved) return firstResolved;
 
     this.options.onSubtitleStatus?.(
@@ -238,7 +250,7 @@ export class BilibiliPlatformAdapter implements VideoPlatformAdapter {
       signal,
       freshness,
     );
-    const retryResolved = await this.resolveDescriptorResult(retry, signal, freshness);
+    const retryResolved = await this.resolveDescriptorResult(retry, retryContext, signal, freshness);
     if (retryResolved) return retryResolved;
     if (retry.status === 'error') {
       throw new Error(`字幕接口请求失败：${retry.reason || first.reason || '请稍后重试'}`);

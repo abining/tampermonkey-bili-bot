@@ -19,6 +19,8 @@ import type {
 } from './types';
 
 interface SubtitleListApiResponse {
+  code?: number;
+  message?: string;
   data?: {
     subtitle?: {
       subtitles?: SubtitleDescriptor[];
@@ -49,10 +51,16 @@ export async function fetchSubtitleDescriptorsResult(
       );
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json() as SubtitleListApiResponse;
+      if (typeof data.code === 'number' && data.code !== 0) {
+        throw new Error(`API ${data.code}: ${data.message || '请求失败'}`);
+      }
       successfulResponses += 1;
       throwIfStale(freshness);
       const subtitles = data.data?.subtitle?.subtitles ?? [];
       if (subtitles.length) return { subtitles, status: 'available', reason: '' };
+      if (endpoint === 'wbi/v2') {
+        return { subtitles: [], status: 'empty', reason: '' };
+      }
     } catch (error) {
       if (isAbortError(error)) throw error;
       throwIfStale(freshness);
@@ -97,6 +105,28 @@ export function pickPreferredSubtitle(
     ?? null;
 }
 
+export function getSubtitleTimelineEnd(
+  segments: SubtitleResult['segments'],
+): number {
+  return segments.reduce((maxEnd, segment) => {
+    const end = Number(segment.to);
+    return Number.isFinite(end) ? Math.max(maxEnd, end) : maxEnd;
+  }, 0);
+}
+
+export function isSubtitleTimelinePlausible(
+  segments: SubtitleResult['segments'],
+  videoDuration: number,
+): boolean {
+  const duration = Number(videoDuration);
+  if (!Number.isFinite(duration) || duration <= 0 || !segments.length) return true;
+
+  const subtitleEnd = getSubtitleTimelineEnd(segments);
+  if (subtitleEnd <= 0) return true;
+  const allowedOverflow = Math.min(120, Math.max(30, duration * 0.1));
+  return subtitleEnd <= duration + allowedOverflow;
+}
+
 export async function fetchSubtitleFromApi(
   context: VideoContext,
   signal: AbortSignal,
@@ -115,6 +145,14 @@ export async function fetchSubtitleFromApi(
   const segments = await fetchSubtitleContent(target.subtitle_url, signal, freshness);
   const transcript = formatTranscript(segments);
   if (!segments.length || !transcript.trim()) return null;
+  if (!isSubtitleTimelinePlausible(segments, context.duration)) {
+    console.warn('[bilibili-bot] 字幕时间轴超过当前视频时长，已拒绝使用', {
+      bvid: context.bvid,
+      cid: context.cid,
+      videoDuration: context.duration,
+      subtitleEnd: getSubtitleTimelineEnd(segments),
+    });
+    return null;
+  }
   return { transcript, segments, source: 'api' };
 }
-
