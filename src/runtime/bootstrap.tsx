@@ -35,6 +35,20 @@ async function mountBilibiliApp(): Promise<void> {
   const mountPoint = document.createElement('div');
   mountPoint.id = 'bilibili-video-summary-react-root';
   shadowRoot.appendChild(mountPoint);
+  const stopEditableKeyboardEvent = (event: KeyboardEvent) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (
+      target instanceof HTMLInputElement
+      || target instanceof HTMLTextAreaElement
+      || target.isContentEditable
+    ) {
+      event.stopPropagation();
+    }
+  };
+  shadowRoot.addEventListener('keydown', stopEditableKeyboardEvent);
+  shadowRoot.addEventListener('keypress', stopEditableKeyboardEvent);
+  shadowRoot.addEventListener('keyup', stopEditableKeyboardEvent);
   body.appendChild(host);
 
   createRoot(mountPoint).render(<App controller={appController} />);

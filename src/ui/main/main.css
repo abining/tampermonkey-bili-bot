@@ -329,6 +329,8 @@
 
 .bvs-main-video-details {
   display: flex;
+  max-height: 180px;
+  overflow-y: auto;
   flex-direction: column;
   gap: 7px;
   padding: 10px 12px 12px;
@@ -337,6 +339,7 @@
   background: #fafafa;
   font-size: 10px;
   line-height: 1.55;
+  overscroll-behavior: contain;
 }
 
 .bvs-main-video-details > div {

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { VideoContext } from '../../contracts/video-context';
 import { APP_ICONS, UiIcon } from '../icons';
 import { formatDuration } from './presentation';
@@ -7,6 +8,29 @@ export interface VideoMetaProps {
 }
 
 export function VideoMeta({ video }: VideoMetaProps) {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const details = detailsRef.current;
+    if (!details) return undefined;
+
+    const isolateDetailsScroll = (event: globalThis.WheelEvent) => {
+      if (!details.open) return;
+      const detailsContent = details.querySelector<HTMLElement>('.bvs-main-video-details');
+      if (!detailsContent) return;
+
+      const canScroll = detailsContent.scrollHeight > detailsContent.clientHeight;
+      const atTop = detailsContent.scrollTop <= 0;
+      const atBottom = detailsContent.scrollTop + detailsContent.clientHeight >= detailsContent.scrollHeight - 1;
+      const scrollingPastBoundary = (event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom);
+      if (!canScroll || scrollingPastBoundary) event.preventDefault();
+      event.stopPropagation();
+    };
+
+    details.addEventListener('wheel', isolateDetailsScroll, { capture: true, passive: false });
+    return () => details.removeEventListener('wheel', isolateDetailsScroll, true);
+  }, [video]);
+
   if (!video) {
     return (
       <section className="bvs-main-video-meta is-empty">
@@ -25,7 +49,7 @@ export function VideoMeta({ video }: VideoMetaProps) {
     : '';
 
   return (
-    <details className="bvs-main-video-meta">
+    <details ref={detailsRef} className="bvs-main-video-meta">
       <summary>
         <span className="bvs-main-video-cover-placeholder">P{video.page || 1}</span>
         <span className="bvs-main-video-title">
