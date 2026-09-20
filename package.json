@@ -1,12 +1,18 @@
 {
   "name": "tampermonkey-bili-bot",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.6",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "vite --mode development",
+    "build": "pnpm run build:prod",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode prod",
+    "preview": "vite preview --mode prod",
+    "serve:userscript": "python3 scripts/serve_userscript.py dist/bilibili-video-summary-beta.user.js",
+    "test:userscript:dev": "pnpm run build:dev && node scripts/verify-userscript-env.mjs development",
+    "test:userscript:prod": "pnpm run build:prod && node scripts/verify-userscript-env.mjs prod",
+    "test:userscript": "pnpm run test:userscript:dev && pnpm run test:userscript:prod"
   },
   "dependencies": {
     "lucide-react": "^1.33.0",

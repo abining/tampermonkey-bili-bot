@@ -66,3 +66,36 @@ src/ui/                    React 主面板、结果页和设置页
 - B站本身没有字幕的分集需要上传或粘贴字幕。
 - 浏览器目录自动保存依赖 File System Access API 和用户授权。
 - Google Flow 页面结构变化时，自动化选择器可能需要同步更新。
+
+## 环境配置与自动测试
+
+项目使用 Vite mode 区分开发和正式打包：
+
+- `.env.development`：可提交的开发默认值，更新地址指向本机 CORS 服务。
+- `.env.development.local`：本机开发覆盖，优先级高于 `.env.development`，由 `*.local` 自动忽略。
+- `.env.prod`：可提交的正式发布配置，`pnpm build` 和 GitHub Actions 固定读取该文件。
+- `.env.example`：变量说明模板；所有 `VITE_*` 配置都是公开配置，禁止放入 API Key、Cookie 或密码。
+
+常用命令：
+
+```bash
+# 开发模式构建，读取 .env.development(.local)
+pnpm run build:dev
+
+# 正式构建，固定读取 .env.prod；默认 build 也是正式构建
+pnpm run build
+
+# 依次验证开发和正式 metadata，结束后保留正式产物
+pnpm run test:userscript
+```
+
+本地 Tampermonkey 自动更新/安装测试：
+
+```bash
+pnpm run test:userscript:dev
+pnpm run serve:userscript
+```
+
+服务只监听 `127.0.0.1:5510`，并为 userscript 响应附加 `Access-Control-Allow-Origin: *` 和禁用缓存响应头。随后打开终端打印的 `USERSCRIPT_URL`，Tampermonkey 会进入安装/更新页。AI 自动测试时会执行相同步骤，完成安装后刷新 Bilibili 页面并检查脚本 UI 与控制台错误。
+
+正式发布由 `.github/workflows/release.yml` 处理：推送与 `package.json` 版本一致的 `v*` 标签后，GitHub Actions 会读取仓库中的 `.env.prod`、执行正式构建与 metadata 校验，然后上传 Release 产物。

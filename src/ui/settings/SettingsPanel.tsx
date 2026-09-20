@@ -994,7 +994,7 @@ export function SettingsPanel({
       <div className="bvs-settings-card bvs-settings-transfer-card">
         <div>
           <strong>配置文件</strong>
-          <span>导入兼容旧版 JSON。默认导出不会包含 API Key。</span>
+          <span>默认导出不会包含 API Key。</span>
         </div>
         <label className="bvs-settings-secret-export">
           <input

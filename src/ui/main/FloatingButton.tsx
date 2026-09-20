@@ -39,7 +39,7 @@ function clampPosition(position: FloatingButtonPosition): FloatingButtonPosition
 
 export function FloatingButton({
   phase,
-  title = 'bilibili 视频总结',
+  title = 'B站视频总结测试',
   statusMessage,
   position,
   onOpen,

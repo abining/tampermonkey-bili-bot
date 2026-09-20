@@ -45,8 +45,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build userscript
-        run: pnpm build
+      - name: Verify production environment
+        shell: bash
+        run: |
+          test -f .env.prod
+          grep -Fq 'VITE_USERSCRIPT_DOWNLOAD_URL=https://' .env.prod
+          grep -Fq 'VITE_USERSCRIPT_UPDATE_URL=https://' .env.prod
+
+      - name: Build and verify userscript with prod environment
+        run: pnpm run test:userscript:prod
 
       - name: Verify userscript artifact
         shell: bash
