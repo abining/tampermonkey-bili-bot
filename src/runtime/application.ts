@@ -79,14 +79,10 @@ export class BilibiliApplication {
     onSubtitleReady: async (context, subtitle) => {
       const config = configController.getSnapshot().config;
       if (!config.enableAutoDownloadSubtitle) return;
-      const result = await downloadTranscript(subtitle.transcript, context, {
-        useDirectory: true,
-        allowDirectoryPicker: false,
-        allowFilePicker: false,
-      });
+      const result = await downloadTranscript(subtitle.transcript, context);
       const current = this.platform.getCurrentContext();
-      if (result === 'downloaded' && current && createVideoContextKey(current) === createVideoContextKey(context)) {
-        appController.update({ statusMessage: '字幕已自动保存' });
+      if ((result === 'downloaded' || result === 'started') && current && createVideoContextKey(current) === createVideoContextKey(context)) {
+        appController.update({ statusMessage: '字幕下载已启动' });
       }
     },
     onSummaryReady: (context) => {
@@ -142,6 +138,7 @@ export class BilibiliApplication {
       generateImage: () => this.featureController.generateImage(),
       saveGeneratedImage: () => this.featureController.saveGeneratedImage(),
       insertSummaryIntoComment: () => this.featureController.insertSummaryIntoComment(),
+      insertSummaryIntoNote: () => this.featureController.insertSummaryIntoNote(),
       fillGeneratedImageComment: () => this.featureController.fillGeneratedImageComment(),
     });
     this.scheduleConfiguredStart(INIT_DELAY_MS);

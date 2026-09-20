@@ -477,6 +477,104 @@
   object-fit: contain;
 }
 
+
+.bvs-result-image-open {
+  position: relative;
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.bvs-result-image-open > span {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #fff;
+  background: rgb(0 0 0 / 66%);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.bvs-image-preview-backdrop {
+  position: fixed;
+  z-index: 2147483646;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 72%);
+}
+
+.bvs-image-preview-dialog {
+  display: flex;
+  width: min(920px, 94vw);
+  max-height: 92vh;
+  overflow: hidden;
+  flex-direction: column;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 14px;
+  background: #17191c;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 45%);
+}
+
+.bvs-image-preview-dialog > header {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 12px 8px 16px;
+  color: #fff;
+  background: #24272b;
+}
+
+.bvs-image-preview-dialog > header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bvs-image-preview-dialog > header small {
+  color: #b9bdc3;
+  font-size: 11px;
+}
+
+.bvs-image-preview-dialog > header button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.bvs-image-preview-dialog > header button:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.bvs-image-preview-dialog > div {
+  display: grid;
+  min-height: 0;
+  overflow: auto;
+  place-items: center;
+  padding: 14px;
+}
+
+.bvs-image-preview-dialog img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(92vh - 80px);
+  object-fit: contain;
+}
+
 .bvs-result-image figcaption {
   padding: 6px 10px;
   color: var(--bvs-muted);
@@ -594,8 +692,7 @@
 
 .bvs-conversation-messages {
   display: flex;
-  max-height: 270px;
-  overflow-y: auto;
+  overflow: visible;
   flex-direction: column;
   gap: 9px;
   padding: 2px;
@@ -679,7 +776,6 @@
 .bvs-conversation textarea {
   width: 100%;
   min-height: 56px;
-  max-height: 130px;
   resize: vertical;
   border: 1px solid var(--bvs-line);
   border-radius: 10px;

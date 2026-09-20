@@ -89,6 +89,11 @@ export function createSettingsConfigAdapter(
       apiKey: profile.apiKey,
       signal,
     }),
+    fetchImageModels: (options, signal?: AbortSignal) => fetchModelList({
+      apiUrl: options.apiUrl,
+      apiKey: options.apiKey,
+      signal,
+    }),
     getCacheStats: () => getSummaryCacheStats(),
     clearCache: () => {
       if (!clearSummaryCache()) throw new Error('清空摘要缓存失败');

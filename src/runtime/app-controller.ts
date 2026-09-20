@@ -26,6 +26,7 @@ export interface AppCommandHandlers {
   generateImage?: () => Promise<void>;
   saveGeneratedImage?: () => Promise<void>;
   insertSummaryIntoComment?: () => Promise<void>;
+  insertSummaryIntoNote?: () => Promise<void>;
   fillGeneratedImageComment?: () => Promise<void>;
 }
 
@@ -187,6 +188,11 @@ export class AppController implements AppCommands {
   async insertSummaryIntoComment(): Promise<void> {
     if (!this.commandHandlers.insertSummaryIntoComment) throw new Error('评论区写入服务尚未接入');
     await this.commandHandlers.insertSummaryIntoComment();
+  }
+
+  async insertSummaryIntoNote(): Promise<void> {
+    if (!this.commandHandlers.insertSummaryIntoNote) throw new Error('笔记写入服务尚未接入');
+    await this.commandHandlers.insertSummaryIntoNote();
   }
 
   async fillGeneratedImageComment(): Promise<void> {

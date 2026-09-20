@@ -173,6 +173,8 @@ export function ResultsPanel(props: ResultsPanelProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [moreMenuStyle, setMoreMenuStyle] = useState<CSSProperties>();
   const [conversationOpen, setConversationOpen] = useState(Boolean(props.conversation?.messages?.length));
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const conversationInputRef = useRef<HTMLTextAreaElement>(null);
   const currentView = props.activeView || uncontrolledView;
@@ -187,6 +189,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
       { key: 'edit-summary', icon: RESULT_ACTION_ICONS['edit-summary'], label: '编辑摘要', callback: props.actions?.onEditSummary },
       { key: 'regenerate', icon: RESULT_ACTION_ICONS.regenerate, label: '重新生成', callback: props.actions?.onRegenerate },
       { key: 'insert-comment', icon: RESULT_ACTION_ICONS['insert-comment'], label: '插入评论', callback: props.actions?.onInsertComment },
+      { key: 'insert-note', icon: RESULT_ACTION_ICONS['insert-note'], label: '插入笔记', callback: props.actions?.onInsertNote },
       { key: 'flomo', icon: RESULT_ACTION_ICONS.flomo, label: '发送 Flomo', callback: props.actions?.onSendFlomo },
       { key: 'download-txt', icon: RESULT_ACTION_ICONS['download-txt'], label: '下载字幕', callback: props.actions?.onDownloadTranscript },
       { key: 'download-srt', icon: RESULT_ACTION_ICONS['download-srt'], label: '下载 SRT', callback: props.actions?.onDownloadSrt },
@@ -287,6 +290,20 @@ export function ResultsPanel(props: ResultsPanelProps) {
   useEffect(() => {
     if (props.conversation?.messages?.length) setConversationOpen(true);
   }, [props.conversation?.messages?.length]);
+
+  useEffect(() => {
+    setImageDimensions(null);
+    setImagePreviewOpen(false);
+  }, [imageSource]);
+
+  useEffect(() => {
+    if (!imagePreviewOpen) return undefined;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setImagePreviewOpen(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [imagePreviewOpen]);
 
   const openConversation = () => {
     setConversationOpen(true);
@@ -402,8 +419,25 @@ export function ResultsPanel(props: ResultsPanelProps) {
 
             {imageSource ? (
               <figure className="bvs-result-image">
-                <img src={imageSource} alt={props.imageAlt || '视频总结配图'} />
-                <figcaption>AI 总结配图</figcaption>
+                <button
+                  type="button"
+                  className="bvs-result-image-open"
+                  title="查看原图尺寸"
+                  onClick={() => setImagePreviewOpen(true)}
+                >
+                  <img
+                    src={imageSource}
+                    alt={props.imageAlt || '视频总结配图'}
+                    onLoad={(event) => setImageDimensions({
+                      width: event.currentTarget.naturalWidth,
+                      height: event.currentTarget.naturalHeight,
+                    })}
+                  />
+                  {imageDimensions ? (
+                    <span>{imageDimensions.width} × {imageDimensions.height} px</span>
+                  ) : null}
+                </button>
+                <figcaption>AI 总结配图 · 点击查看原图</figcaption>
               </figure>
             ) : null}
 
@@ -604,6 +638,35 @@ export function ResultsPanel(props: ResultsPanelProps) {
         </form>
         </div> : null}
       </section>
+
+      {imagePreviewOpen && imageSource ? (
+        <div
+          className="bvs-image-preview-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target) setImagePreviewOpen(false);
+          }}
+        >
+          <section className="bvs-image-preview-dialog" role="dialog" aria-modal="true" aria-label="生成配图预览">
+            <header>
+              <div>
+                <strong>生成配图</strong>
+                <small>
+                  {imageDimensions
+                    ? `${imageDimensions.width} × ${imageDimensions.height} px`
+                    : '正在读取图片尺寸…'}
+                </small>
+              </div>
+              <button type="button" aria-label="关闭图片预览" onClick={() => setImagePreviewOpen(false)}>
+                <UiIcon icon={APP_ICONS.close} size={18} />
+              </button>
+            </header>
+            <div>
+              <img src={imageSource} alt={props.imageAlt || '视频总结配图'} />
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       {notice ? <p className="bvs-results-notice" role="status">{notice}</p> : null}
     </section>

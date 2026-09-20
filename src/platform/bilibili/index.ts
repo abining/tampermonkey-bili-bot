@@ -2,6 +2,7 @@ export * from './adapter';
 export * from './comment-editor';
 export * from './comments';
 export * from './danmaku';
+export * from './note-editor';
 export * from './shared';
 export * from './subtitle-api';
 export * from './subtitle-capture';

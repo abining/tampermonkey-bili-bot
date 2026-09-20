@@ -138,6 +138,7 @@ export const RESULT_ACTION_ICONS = {
   'edit-summary': Pencil,
   regenerate: RefreshCw,
   'insert-comment': MessageSquareShare,
+  'insert-note': NotebookPen,
   flomo: StickyNote,
   'download-txt': FileDown,
   'download-srt': FileText,

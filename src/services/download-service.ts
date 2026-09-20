@@ -249,8 +249,7 @@ export async function triggerDownload(
     }
   }
 
-  if (options.allowFilePicker === false) return 'needs-interaction';
-  if (pageWindow.showSaveFilePicker) {
+  if (options.allowFilePicker !== false && pageWindow.showSaveFilePicker) {
     try {
       const extension = String(filename || '').match(/(\.[^.]+)$/)?.[1] || '.txt';
       const plainMime = String(mimeType || 'application/octet-stream').split(';')[0];
@@ -302,8 +301,9 @@ export async function downloadTranscript(
   options: DownloadOptions = {},
 ): Promise<DownloadResult> {
   return triggerDownload(text, buildVideoFilename(video, 'txt'), 'text/plain;charset=utf-8', {
-    useDirectory: true,
-    allowDirectoryPicker: true,
+    useDirectory: false,
+    allowDirectoryPicker: false,
+    allowFilePicker: false,
     ...options,
   });
 }
@@ -338,8 +338,9 @@ export async function downloadSubtitleSrt(
   const srt = buildSrtContent(subtitles);
   if (!srt) return false;
   return triggerDownload(srt, buildVideoFilename(video, 'srt'), 'text/plain;charset=utf-8', {
-    useDirectory: true,
-    allowDirectoryPicker: true,
+    useDirectory: false,
+    allowDirectoryPicker: false,
+    allowFilePicker: false,
     ...options,
   });
 }
@@ -357,5 +358,10 @@ export async function downloadGeneratedImage(
   const binary = match[2] ? pageWindow.atob(match[3]) : decodeURIComponent(match[3]);
   const bytes = new Uint8Array(binary.length);
   for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
-  return triggerDownload(bytes, `${title}${suffix}.png`, match[1] || 'image/png', options);
+  return triggerDownload(bytes, `${title}${suffix}.png`, match[1] || 'image/png', {
+    useDirectory: false,
+    allowDirectoryPicker: false,
+    allowFilePicker: false,
+    ...options,
+  });
 }

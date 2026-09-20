@@ -84,6 +84,13 @@ export function normalizeConfig(value: unknown): AppConfig {
   } as AppConfig;
 
   merged.modelList = normalizeStringArray(saved.modelList, defaults.modelList);
+  merged.imageGenModelList = normalizeStringArray(
+    saved.imageGenModelList,
+    defaults.imageGenModelList,
+  );
+  if (merged.imageGenModel && !merged.imageGenModelList.includes(merged.imageGenModel)) {
+    merged.imageGenModelList.unshift(merged.imageGenModel);
+  }
   merged.commentTextPresets = normalizeStringArray(
     saved.commentTextPresets,
     defaults.commentTextPresets,

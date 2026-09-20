@@ -16,6 +16,7 @@ export type ResultsActionKey =
   | 'edit-summary'
   | 'regenerate'
   | 'insert-comment'
+  | 'insert-note'
   | 'flomo'
   | 'download-txt'
   | 'download-srt'
@@ -48,6 +49,7 @@ export interface ResultsPanelActions {
   onEditSummary?: ResultAsyncCallback;
   onRegenerate?: ResultAsyncCallback;
   onInsertComment?: ResultAsyncCallback;
+  onInsertNote?: ResultAsyncCallback;
   onSendFlomo?: ResultAsyncCallback;
   onDownloadTranscript?: ResultAsyncCallback;
   onDownloadSrt?: ResultAsyncCallback;

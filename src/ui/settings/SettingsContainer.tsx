@@ -72,8 +72,12 @@ export function SettingsContainer({
   );
   const [cacheStats, setCacheStats] = useState(() => adapter.getCacheStats());
   const modelRequestRef = useRef<AbortController | null>(null);
+  const imageModelRequestRef = useRef<AbortController | null>(null);
 
-  useEffect(() => () => modelRequestRef.current?.abort(), []);
+  useEffect(() => () => {
+    modelRequestRef.current?.abort();
+    imageModelRequestRef.current?.abort();
+  }, []);
 
   const save = async (draft: typeof config) => {
     const saved = await adapter.saveConfig(draft);
@@ -123,6 +127,19 @@ export function SettingsContainer({
     }
   };
 
+  const fetchImageModels = async (
+    options: Parameters<typeof adapter.fetchImageModels>[0],
+  ) => {
+    imageModelRequestRef.current?.abort();
+    const controller = new AbortController();
+    imageModelRequestRef.current = controller;
+    try {
+      return await adapter.fetchImageModels(options, controller.signal);
+    } finally {
+      if (imageModelRequestRef.current === controller) imageModelRequestRef.current = null;
+    }
+  };
+
   return (
     <>
       <style data-style-id={SETTINGS_STYLE_MARKER}>{SETTINGS_CSS_TEXT}</style>
@@ -136,6 +153,7 @@ export function SettingsContainer({
         onExport={exportDraft}
         onReset={resetDraft}
         onFetchModels={fetchModels}
+        onFetchImageModels={fetchImageModels}
         onClearSummaryCache={clearCache}
       />
     </>

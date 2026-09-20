@@ -8,7 +8,8 @@
 - 支持 OpenAI 兼容接口、流式摘要、模型列表、摘要预设和连续追问。
 - 支持评论、弹幕、全面分析、手动字幕、TXT/SRT 下载和评论区填充。
 - 支持配置字幕转写后端；接口约定见 [`docs/backend-subtitle-api.md`](docs/backend-subtitle-api.md)。
-- 支持 API 生图、Google Flow、Flomo 和配置导入导出。
+- 支持 API 生图、Google Flow、Flomo 和配置导入导出；生图可复用当前 AI 配置并读取模型列表。
+- 支持生成图片实际尺寸显示与预览，以及将 Markdown 摘要转换后插入 Bilibili 笔记编辑器。
 - 使用 React Shadow DOM 面板，支持拖动、缩放、悬浮按钮和位置持久化。
 - 兼容旧版配置与摘要缓存迁移。
 
@@ -64,7 +65,7 @@ src/ui/                    React 主面板、结果页和设置页
 ## 已知限制
 
 - B站本身没有字幕的分集需要上传或粘贴字幕。
-- 浏览器目录自动保存依赖 File System Access API 和用户授权。
+- 字幕、分析原文和生成图片均通过浏览器下载，不需要授权本地目录。
 - Google Flow 页面结构变化时，自动化选择器可能需要同步更新。
 
 ## 环境配置与自动测试

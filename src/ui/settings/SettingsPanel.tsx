@@ -57,6 +57,7 @@ const RESULT_ACTION_LABELS: Record<ResultActionButtonId, string> = {
   generate_image: '生成配图',
   copy_image_prompt: '复制生图提示词',
   post_comment: '摘要发评论',
+  post_note: '摘要插入笔记',
   send_flomo: '发送到 Flomo',
   download_transcript: '下载字幕 TXT',
   download_srt: '下载字幕 SRT',
@@ -263,6 +264,7 @@ export function SettingsPanel({
   onExport,
   onReset,
   onFetchModels,
+  onFetchImageModels,
   onClearSummaryCache,
 }: SettingsPanelProps) {
   const [draft, setDraft] = useState<AppConfig>(() => cloneConfig(config));
@@ -428,6 +430,32 @@ export function SettingsPanel({
     }));
   });
 
+  const fetchImageModels = () => runAction(async () => {
+    if (!onFetchImageModels) return;
+    const apiUrl = draft.imageGenApiUrl.trim() || activeProfile?.apiUrl.trim() || draft.apiUrl.trim();
+    const apiKey = draft.imageGenApiKey.trim() || activeProfile?.apiKey.trim() || draft.apiKey.trim();
+    if (!apiUrl) throw new Error('请先配置生图 API 地址或当前 AI API 地址');
+    if (!apiKey) throw new Error('请先配置生图 API Key 或当前 AI API Key');
+    const models = await onFetchImageModels({ apiUrl, apiKey });
+    if (!models.length) throw new Error('接口没有返回可用生图模型');
+    setDraft((current) => ({
+      ...current,
+      imageGenModel: current.imageGenModel && models.includes(current.imageGenModel)
+        ? current.imageGenModel
+        : models[0],
+      imageGenModelList: models,
+    }));
+  });
+
+  const reuseActiveAiConfigForImage = () => {
+    setDraft((current) => ({
+      ...current,
+      imageGenApiUrl: '',
+      imageGenApiKey: '',
+    }));
+    setShowImageApiKey(false);
+  };
+
   const renderGeneral = () => (
     <div className="bvs-settings-card-stack">
       <div className="bvs-settings-card">
@@ -451,7 +479,7 @@ export function SettingsPanel({
         />
         <SwitchField
           label="自动下载字幕"
-          description="字幕获取成功后尝试保存到已授权目录。"
+          description="字幕获取成功后直接触发浏览器下载。"
           checked={draft.enableAutoDownloadSubtitle}
           onChange={(checked) => updateConfig('enableAutoDownloadSubtitle', checked)}
         />
@@ -812,7 +840,7 @@ export function SettingsPanel({
         />
         <SwitchField
           label="自动下载生成图片"
-          description="成功生成图片后尝试保存到已授权目录的图片子目录。"
+          description="成功生成图片后直接触发浏览器下载。"
           checked={draft.enableImageAutoDownload}
           onChange={(checked) => updateConfig('enableImageAutoDownload', checked)}
         />
@@ -838,18 +866,31 @@ export function SettingsPanel({
         </Field>
         {draft.imageGenMode === 'api' ? (
           <>
-            <Field label="生图 API 地址" hint="留空时复用当前摘要 API。" wide>
+            <div className="bvs-settings-field is-wide bvs-settings-image-api-header">
+              <span>
+                <strong>生图 API 配置</strong>
+                <small>
+                  {draft.imageGenApiUrl || draft.imageGenApiKey
+                    ? '当前使用独立生图配置；留空的字段仍会复用当前 AI 配置。'
+                    : `正在复用“AI 与模型”中的 ${activeProfile?.name || '当前配置'}。`}
+                </small>
+              </span>
+              <button type="button" onClick={reuseActiveAiConfigForImage}>复用当前 AI 配置</button>
+            </div>
+            <Field label="生图 API 地址" hint="留空时复用“AI 与模型”当前配置的 API 地址。" wide>
               <input
                 value={draft.imageGenApiUrl}
+                placeholder={activeProfile?.apiUrl || draft.apiUrl || 'https://example.com/v1'}
                 onChange={(event) => updateConfig('imageGenApiUrl', event.currentTarget.value)}
               />
             </Field>
-            <Field label="生图 API Key" hint="留空时复用当前摘要 API Key。" wide>
+            <Field label="生图 API Key" hint="留空时复用“AI 与模型”当前配置的 API Key。" wide>
               <div className="bvs-settings-password-input">
                 <input
                   type={showImageApiKey ? 'text' : 'password'}
                   value={draft.imageGenApiKey}
                   autoComplete="off"
+                  placeholder={activeProfile?.apiKey || draft.apiKey ? '留空则复用当前 AI API Key' : '请输入 API Key'}
                   onChange={(event) => updateConfig('imageGenApiKey', event.currentTarget.value)}
                 />
                 <button type="button" onClick={() => setShowImageApiKey((visible) => !visible)}>
@@ -857,12 +898,55 @@ export function SettingsPanel({
                 </button>
               </div>
             </Field>
-            <Field label="生图模型" wide>
-              <input
-                value={draft.imageGenModel}
-                onChange={(event) => updateConfig('imageGenModel', event.currentTarget.value)}
-              />
+            <Field label="生图模型" hint="可从当前有效 API 获取列表，也可以在下方手动维护。" wide>
+              <div className="bvs-settings-image-model-row">
+                <UiSelect
+                  ariaLabel="生图模型"
+                  searchable
+                  searchPlaceholder="搜索生图模型"
+                  value={draft.imageGenModel}
+                  placeholder={draft.imageGenModelList.length ? '选择生图模型' : '请先获取或添加模型'}
+                  options={[...new Set([
+                    draft.imageGenModel,
+                    ...draft.imageGenModelList,
+                  ].filter(Boolean))].map((model) => ({ value: model, label: model }))}
+                  onChange={(model) => updateConfig('imageGenModel', model)}
+                />
+                <button
+                  type="button"
+                  className="bvs-settings-fetch-image-models"
+                  disabled={isBusy || !onFetchImageModels}
+                  onClick={() => void fetchImageModels()}
+                >
+                  <UiIcon icon={APP_ICONS.retry} size={14} />获取模型列表
+                </button>
+              </div>
             </Field>
+            <div className="bvs-settings-field is-wide">
+              <details className="bvs-settings-model-editor">
+                <summary>
+                  <span>
+                    <strong>管理生图模型</strong>
+                    <small>{draft.imageGenModelList.length} 个模型 · 每行一个模型名称</small>
+                  </span>
+                  <UiIcon icon={APP_ICONS.expand} size={16} />
+                </summary>
+                <div>
+                  <textarea
+                    rows={5}
+                    value={draft.imageGenModelList.join('\n')}
+                    placeholder="每行一个模型名称"
+                    onChange={(event) => updateConfig(
+                      'imageGenModelList',
+                      event.currentTarget.value
+                        .split('\n')
+                        .map((model) => model.trim())
+                        .filter(Boolean),
+                    )}
+                  />
+                </div>
+              </details>
+            </div>
           </>
         ) : (
           <>

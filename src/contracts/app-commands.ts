@@ -20,6 +20,7 @@ export interface AppCommands {
   generateImage(): Promise<void>;
   saveGeneratedImage(): Promise<void>;
   insertSummaryIntoComment(): Promise<void>;
+  insertSummaryIntoNote(): Promise<void>;
   fillGeneratedImageComment(): Promise<void>;
   updateSummary(summary: string): void;
   setPanelOpen(open: boolean): void;

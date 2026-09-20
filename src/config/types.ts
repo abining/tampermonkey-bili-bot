@@ -7,6 +7,7 @@ export type ResultActionButtonId =
   | 'generate_image'
   | 'copy_image_prompt'
   | 'post_comment'
+  | 'post_note'
   | 'send_flomo'
   | 'download_transcript'
   | 'download_srt'
@@ -62,6 +63,7 @@ export interface AppConfig {
   imageGenApiUrl: string;
   imageGenApiKey: string;
   imageGenModel: string;
+  imageGenModelList: string[];
   imageGenSize: string;
   enableImageAutoDownload: boolean;
   imageGenMode: ImageGenerationMode;

@@ -25,6 +25,7 @@ export interface SettingsPanelProps {
   ): void | Promise<void>;
   onReset(): AppConfig | void | Promise<AppConfig | void>;
   onFetchModels?(profile: ApiProfile): string[] | Promise<string[]>;
+  onFetchImageModels?(options: { apiUrl: string; apiKey: string }): string[] | Promise<string[]>;
   onClearSummaryCache?(): void | Promise<void>;
 }
 
@@ -36,6 +37,10 @@ export interface SettingsConfigAdapter {
   importDraft(value: string): AppConfig;
   exportDraft(config: AppConfig, options: SettingsExportOptions): string;
   fetchModels(profile: ApiProfile, signal?: AbortSignal): Promise<string[]>;
+  fetchImageModels(
+    options: { apiUrl: string; apiKey: string },
+    signal?: AbortSignal,
+  ): Promise<string[]>;
   getCacheStats(): SettingsCacheStats;
   clearCache(): SettingsCacheStats;
 }

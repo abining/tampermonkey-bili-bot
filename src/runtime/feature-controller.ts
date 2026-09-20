@@ -28,6 +28,7 @@ import {
   formatDanmakuText,
   insertPresetAndOpenImageUpload,
   insertSummaryIntoComment,
+  insertSummaryIntoNote as insertBilibiliNote,
 } from '../platform/bilibili';
 import type { ConfigController } from './config-controller';
 import type { AppController } from './app-controller';
@@ -333,6 +334,7 @@ export class FeatureController {
       analysis.rawText,
       `${title}__${labels[kind]}__${timestamp}.txt`,
       'text/plain;charset=utf-8',
+      { useDirectory: false, allowDirectoryPicker: false, allowFilePicker: false },
     );
     this.feedbackDownloadResult(result, '分析原文');
   }
@@ -409,12 +411,7 @@ export class FeatureController {
         },
       });
       if (config.enableImageAutoDownload && snapshot.video && result.imageDataUrl.startsWith('data:')) {
-        await downloadGeneratedImage(result.imageDataUrl, snapshot.video, '_总结', {
-          useDirectory: true,
-          allowDirectoryPicker: false,
-          allowFilePicker: false,
-          directorySubdirectory: '图片',
-        });
+        await downloadGeneratedImage(result.imageDataUrl, snapshot.video, '_总结');
       }
     } catch (error) {
       if (!this.isCurrent(generation, contextKey)) return;
@@ -453,6 +450,17 @@ export class FeatureController {
       autoSubmit: config.autoSubmitCommentSummary,
     });
     this.feedback('success', config.autoSubmitCommentSummary ? '摘要已提交到评论区' : '摘要已填入评论框');
+  }
+
+  async insertSummaryIntoNote(): Promise<void> {
+    const snapshot = this.app.getSnapshot();
+    const task = this.app.createTaskController();
+    await insertBilibiliNote(this.requireSummary(), {
+      signal: task.signal,
+      expectedContextKey: snapshot.contextKey,
+      isCurrent: () => this.isCurrent(snapshot.routeGeneration, snapshot.contextKey),
+    });
+    this.feedback('success', '摘要已插入 B站笔记编辑器，请确认排版后再发布');
   }
 
   async fillGeneratedImageComment(): Promise<void> {
