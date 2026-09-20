@@ -12,7 +12,8 @@
     "serve:userscript": "python3 scripts/serve_userscript.py dist/bilibili-video-summary-beta.user.js",
     "test:userscript:dev": "pnpm run build:dev && node scripts/verify-userscript-env.mjs development",
     "test:userscript:prod": "pnpm run build:prod && node scripts/verify-userscript-env.mjs prod",
-    "test:userscript": "pnpm run test:userscript:dev && pnpm run test:userscript:prod"
+    "test:userscript": "pnpm run test:userscript:dev && pnpm run test:userscript:prod",
+    "release": "bash scripts/release.sh"
   },
   "dependencies": {
     "lucide-react": "^1.33.0",

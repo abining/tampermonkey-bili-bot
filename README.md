@@ -99,4 +99,13 @@ pnpm run serve:userscript
 
 服务只监听 `127.0.0.1:5510`，并为 userscript 响应附加 `Access-Control-Allow-Origin: *` 和禁用缓存响应头。随后打开终端打印的 `USERSCRIPT_URL`，Tampermonkey 会进入安装/更新页。AI 自动测试时会执行相同步骤，完成安装后刷新 Bilibili 页面并检查脚本 UI 与控制台错误。
 
-正式发布由 `.github/workflows/release.yml` 处理：推送与 `package.json` 版本一致的 `v*` 标签后，GitHub Actions 会读取仓库中的 `.env.prod`、执行正式构建与 metadata 校验，然后上传 Release 产物。
+正式发布由 `.github/workflows/release.yml` 处理。推荐使用发布脚本完成版本更新、校验、提交、打标签和推送：
+
+```bash
+# 递增 patch/minor/major 版本，也可以直接传入 x.y.z
+pnpm release patch
+pnpm release minor
+pnpm release 1.2.0
+```
+
+脚本要求工作区干净，会先更新 `package.json` 的版本并执行完整 userscript 校验，然后创建 `chore(release): v*` 提交和对应的 `v*` 标签并推送到 `origin`。推送标签后，GitHub Actions 会读取仓库中的 `.env.prod`、执行正式构建与 metadata 校验，然后上传 Release 产物。
