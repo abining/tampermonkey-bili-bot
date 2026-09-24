@@ -131,6 +131,7 @@ export interface ResultsPanelProps {
   onViewChange?: (view: ResultsView) => void;
   onPresetChange?: (presetId: string) => void | Promise<void>;
   onAbortSummary?: ResultAsyncCallback;
+  onTimestampClick?: (seconds: number) => void;
   onCopyPortablePrompt?: ResultAsyncCallback;
   emptyTitle?: string;
   emptyDescription?: string;

@@ -103,6 +103,25 @@ function saveFloatPosition(floatBtn: FloatingButtonPosition): void {
   });
 }
 
+function findPrimaryVideo(): HTMLVideoElement | null {
+  const videos = Array.from(document.querySelectorAll<HTMLVideoElement>('video'));
+  if (!videos.length) return null;
+
+  return videos
+    .map((video, index) => {
+      const rect = video.getBoundingClientRect();
+      const visible = rect.width > 0 && rect.height > 0;
+      const playing = !video.paused && !video.ended;
+      const score = (playing ? 1_000_000 : 0)
+        + (visible ? 100_000 : 0)
+        + (video.readyState > 0 ? 10_000 : 0)
+        + Math.min(rect.width * rect.height, 1_000_000)
+        - index;
+      return { video, score };
+    })
+    .sort((left, right) => right.score - left.score)[0]?.video ?? null;
+}
+
 function chooseSubtitleFile(): Promise<{ text: string; filename: string } | null> {
   return new Promise((resolve, reject) => {
     const input = document.createElement('input');
@@ -151,6 +170,26 @@ export function App({ controller }: AppProps) {
   const [manualError, setManualError] = useState('');
   const [editingSummary, setEditingSummary] = useState(false);
   const [summaryDraft, setSummaryDraft] = useState('');
+
+  const seekToTimestamp = (seconds: number) => {
+    if (!Number.isFinite(seconds) || seconds < 0) return;
+    const video = findPrimaryVideo();
+    if (!video) {
+      controller.update({
+        actionFeedback: {
+          type: 'error',
+          message: '没有找到当前页面的视频播放器。',
+          createdAt: Date.now(),
+        },
+      });
+      return;
+    }
+
+    const duration = Number.isFinite(video.duration) && video.duration > 0
+      ? video.duration
+      : Number.POSITIVE_INFINITY;
+    video.currentTime = Math.min(seconds, Math.max(0, duration));
+  };
 
   useEffect(() => {
     if (!snapshot.actionFeedback) return undefined;
@@ -329,6 +368,7 @@ export function App({ controller }: AppProps) {
       onViewChange={(view) => controller.setActiveResult(resultViewToKind(view))}
       onPresetChange={(presetId) => controller.regenerateSummary(presetId)}
       onAbortSummary={() => controller.abortCurrentTask()}
+      onTimestampClick={seekToTimestamp}
       onCopyPortablePrompt={snapshot.transcript ? () => controller.copyPortablePrompt() : undefined}
     />
   );

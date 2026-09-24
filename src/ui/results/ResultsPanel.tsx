@@ -107,6 +107,7 @@ function AnalysisView({
   onCopy,
   onSendFlomo,
   onExport,
+  onTimestampClick,
 }: {
   title: string;
   description: string;
@@ -117,6 +118,7 @@ function AnalysisView({
   onCopy?: ResultAsyncCallback;
   onSendFlomo?: ResultAsyncCallback;
   onExport?: ResultAsyncCallback;
+  onTimestampClick?: (seconds: number) => void;
 }) {
   const status = state?.status || 'idle';
   const busy = status === 'loading' || status === 'streaming';
@@ -138,7 +140,7 @@ function AnalysisView({
       {state?.content ? (
         <>
           <div className={busy ? 'bvs-analysis-content is-streaming' : 'bvs-analysis-content'}>
-            <SafeMarkdown content={state.content} />
+            <SafeMarkdown content={state.content} onTimestampClick={onTimestampClick} />
             {busy ? <span className="bvs-stream-cursor" aria-label="正在输出" /> : null}
           </div>
           {!busy ? (
@@ -394,7 +396,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
             {props.status === 'interrupted' ? <ErrorState message={props.error || '任务已被中断，可以重新生成。'} /> : null}
             {props.summary ? (
               <article className={summaryBusy ? 'bvs-summary-card is-streaming' : 'bvs-summary-card'}>
-                <SafeMarkdown content={props.summary} />
+                <SafeMarkdown content={props.summary} onTimestampClick={props.onTimestampClick} />
                 {summaryBusy ? <span className="bvs-stream-cursor" aria-label="正在输出" /> : null}
               </article>
             ) : null}
@@ -525,6 +527,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
             onCopy={props.analysisCallbacks?.onCopyComments}
             onSendFlomo={props.analysisCallbacks?.onSendCommentsFlomo}
             onExport={props.analysisCallbacks?.onExportComments}
+            onTimestampClick={props.onTimestampClick}
           />
         ) : null}
         {currentView === 'danmaku' ? (
@@ -538,6 +541,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
             onCopy={props.analysisCallbacks?.onCopyDanmaku}
             onSendFlomo={props.analysisCallbacks?.onSendDanmakuFlomo}
             onExport={props.analysisCallbacks?.onExportDanmaku}
+            onTimestampClick={props.onTimestampClick}
           />
         ) : null}
         {currentView === 'full-analysis' ? (
@@ -551,6 +555,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
             onCopy={props.analysisCallbacks?.onCopyFullAnalysis}
             onSendFlomo={props.analysisCallbacks?.onSendFullAnalysisFlomo}
             onExport={props.analysisCallbacks?.onExportFullAnalysis}
+            onTimestampClick={props.onTimestampClick}
           />
         ) : null}
       </div>
@@ -592,7 +597,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
                   />
                 </span>
                 <div>
-                  {message.role === 'user' ? <p>{message.content}</p> : <SafeMarkdown content={message.content} />}
+                  {message.role === 'user' ? <p>{message.content}</p> : <SafeMarkdown content={message.content} onTimestampClick={props.onTimestampClick} />}
                   {message.streaming ? <i className="bvs-stream-cursor" aria-label="正在输出" /> : null}
                   {message.model ? <small>{message.model}</small> : null}
                 </div>

@@ -3,7 +3,10 @@ import { Fragment, type ReactNode } from 'react';
 export interface SafeMarkdownProps {
   content: string;
   className?: string;
+  onTimestampClick?: (seconds: number) => void;
 }
+
+type TimestampClickHandler = (seconds: number) => void;
 
 function safeHref(rawHref: string): string | undefined {
   const href = rawHref.trim();
@@ -16,6 +19,20 @@ function safeHref(rawHref: string): string | undefined {
   }
 }
 
+function parseTimestampSeconds(rawTimestamp: string): number | undefined {
+  const timestamp = rawTimestamp.replace(/[\[\]]/g, '').split(/\s*[-–—]\s*/, 1)[0] ?? '';
+  const parts = timestamp.replace(',', '.').split(':').map(Number);
+  if (parts.some((part) => !Number.isFinite(part)) || (parts.length !== 2 && parts.length !== 3)) {
+    return undefined;
+  }
+  const secondsPart = parts[parts.length - 1];
+  if (parts[1] >= 60 || parts[1] < 0 || secondsPart >= 60 || secondsPart < 0) {
+    return undefined;
+  }
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return parts[0] * 3600 + parts[1] * 60 + parts[2];
+}
+
 function textWithBreaks(text: string, keyPrefix: string): ReactNode[] {
   return text.split('\n').flatMap((part, index, source) => {
     const nodes: ReactNode[] = [part];
@@ -24,9 +41,13 @@ function textWithBreaks(text: string, keyPrefix: string): ReactNode[] {
   });
 }
 
-function renderInline(text: string, keyPrefix: string): ReactNode[] {
+function renderInline(
+  text: string,
+  keyPrefix: string,
+  onTimestampClick?: TimestampClickHandler,
+): ReactNode[] {
   const tokenPattern =
-    /(`[^`\n]+`|\*\*[^*\n]+\*\*|__[^_\n]+__|~~[^~\n]+~~|\[[^\]\n]+]\([^)\n]+\)|\*[^*\n]+\*|_[^_\n]+_)/g;
+    /(`[^`\n]+`|\*\*[^*\n]+\*\*|__[^_\n]+__|~~[^~\n]+~~|\[[^\]\n]+]\([^)\n]+\)|\[\s*\d{1,3}:\d{2}(?::\d{2}(?:[.,]\d{1,3})?)?(?:\s*[-–—]\s*\d{1,3}:\d{2}(?::\d{2}(?:[.,]\d{1,3})?)?)?\s*\]|\b\d{1,3}:\d{2}(?::\d{2}(?:[.,]\d{1,3})?)?\b|\*[^*\n]+\*|_[^_\n]+_)/g;
   const nodes: ReactNode[] = [];
   let cursor = 0;
   let tokenIndex = 0;
@@ -37,26 +58,40 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
     const token = match[0];
     const key = `${keyPrefix}-token-${tokenIndex}`;
 
-    if (token.startsWith('`')) {
+    const timestampSeconds = parseTimestampSeconds(token);
+    if (timestampSeconds !== undefined && onTimestampClick) {
+      nodes.push(
+        <button
+          key={key}
+          type="button"
+          className="bvs-timestamp-link"
+          title={`跳转到 ${token}`}
+          aria-label={`跳转到 ${token}`}
+          onClick={() => onTimestampClick(timestampSeconds)}
+        >
+          {token}
+        </button>,
+      );
+    } else if (token.startsWith('`')) {
       nodes.push(<code key={key}>{token.slice(1, -1)}</code>);
     } else if (token.startsWith('**') || token.startsWith('__')) {
-      nodes.push(<strong key={key}>{renderInline(token.slice(2, -2), `${key}-strong`)}</strong>);
+      nodes.push(<strong key={key}>{renderInline(token.slice(2, -2), `${key}-strong`, onTimestampClick)}</strong>);
     } else if (token.startsWith('~~')) {
-      nodes.push(<del key={key}>{renderInline(token.slice(2, -2), `${key}-del`)}</del>);
+      nodes.push(<del key={key}>{renderInline(token.slice(2, -2), `${key}-del`, onTimestampClick)}</del>);
     } else if (token.startsWith('[')) {
       const linkMatch = token.match(/^\[([^\]]+)]\(([^)]+)\)$/);
       const href = linkMatch ? safeHref(linkMatch[2]) : undefined;
       if (linkMatch && href) {
         nodes.push(
           <a key={key} href={href} target="_blank" rel="noopener noreferrer">
-            {renderInline(linkMatch[1], `${key}-link`)}
+            {renderInline(linkMatch[1], `${key}-link`, onTimestampClick)}
           </a>,
         );
       } else {
         nodes.push(token);
       }
     } else {
-      nodes.push(<em key={key}>{renderInline(token.slice(1, -1), `${key}-em`)}</em>);
+      nodes.push(<em key={key}>{renderInline(token.slice(1, -1), `${key}-em`, onTimestampClick)}</em>);
     }
     cursor = index + token.length;
     tokenIndex += 1;
@@ -87,7 +122,7 @@ function startsBlock(lines: string[], index: number): boolean {
   return Boolean(lines[index + 1] && line.includes('|') && isTableSeparator(lines[index + 1]));
 }
 
-function renderBlocks(content: string): ReactNode[] {
+function renderBlocks(content: string, onTimestampClick?: TimestampClickHandler): ReactNode[] {
   const lines = content.replace(/\r\n?/g, '\n').split('\n');
   const blocks: ReactNode[] = [];
   let index = 0;
@@ -119,7 +154,7 @@ function renderBlocks(content: string): ReactNode[] {
     const heading = line.match(/^(#{1,6})\s+(.+)$/);
     if (heading) {
       const level = heading[1].length;
-      const children = renderInline(heading[2], `heading-${index}`);
+      const children = renderInline(heading[2], `heading-${index}`, onTimestampClick);
       if (level === 1) blocks.push(<h1 key={`heading-${index}`}>{children}</h1>);
       else if (level === 2) blocks.push(<h2 key={`heading-${index}`}>{children}</h2>);
       else if (level === 3) blocks.push(<h3 key={`heading-${index}`}>{children}</h3>);
@@ -142,7 +177,7 @@ function renderBlocks(content: string): ReactNode[] {
         quote.push(lines[index].replace(/^>\s?/, ''));
         index += 1;
       }
-      blocks.push(<blockquote key={`quote-${index}`}>{renderInline(quote.join('\n'), `quote-${index}`)}</blockquote>);
+      blocks.push(<blockquote key={`quote-${index}`}>{renderInline(quote.join('\n'), `quote-${index}`, onTimestampClick)}</blockquote>);
       continue;
     }
 
@@ -158,13 +193,13 @@ function renderBlocks(content: string): ReactNode[] {
         <div className="bvs-markdown-table-wrap" key={`table-${index}`}>
           <table>
             <thead>
-              <tr>{headers.map((cell, cellIndex) => <th key={cellIndex}>{renderInline(cell, `th-${index}-${cellIndex}`)}</th>)}</tr>
+              <tr>{headers.map((cell, cellIndex) => <th key={cellIndex}>{renderInline(cell, `th-${index}-${cellIndex}`, onTimestampClick)}</th>)}</tr>
             </thead>
             <tbody>
               {rows.map((row, rowIndex) => (
                 <tr key={rowIndex}>
                   {headers.map((_, cellIndex) => (
-                    <td key={cellIndex}>{renderInline(row[cellIndex] || '', `td-${index}-${rowIndex}-${cellIndex}`)}</td>
+                    <td key={cellIndex}>{renderInline(row[cellIndex] || '', `td-${index}-${rowIndex}-${cellIndex}`, onTimestampClick)}</td>
                   ))}
                 </tr>
               ))}
@@ -193,7 +228,7 @@ function renderBlocks(content: string): ReactNode[] {
             return (
               <li key={itemIndex} className={task ? 'bvs-markdown-task' : undefined}>
                 {task ? <input type="checkbox" checked={task[1].toLowerCase() === 'x'} readOnly /> : null}
-                {renderInline(task ? task[2] : item, `li-${index}-${itemIndex}`)}
+                {renderInline(task ? task[2] : item, `li-${index}-${itemIndex}`, onTimestampClick)}
               </li>
             );
           })}
@@ -208,15 +243,15 @@ function renderBlocks(content: string): ReactNode[] {
       paragraph.push(lines[index]);
       index += 1;
     }
-    blocks.push(<p key={`paragraph-${index}`}>{renderInline(paragraph.join('\n'), `paragraph-${index}`)}</p>);
+    blocks.push(<p key={`paragraph-${index}`}>{renderInline(paragraph.join('\n'), `paragraph-${index}`, onTimestampClick)}</p>);
   }
   return blocks;
 }
 
-export function SafeMarkdown({ content, className }: SafeMarkdownProps) {
+export function SafeMarkdown({ content, className, onTimestampClick }: SafeMarkdownProps) {
   return (
     <div className={className ? `bvs-safe-markdown ${className}` : 'bvs-safe-markdown'}>
-      {content ? renderBlocks(content) : <Fragment />}
+      {content ? renderBlocks(content, onTimestampClick) : <Fragment />}
     </div>
   );
 }

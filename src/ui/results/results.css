@@ -1145,3 +1145,26 @@
     gap: 4px;
   }
 }
+
+.bvs-timestamp-link {
+  display: inline;
+  border: 0;
+  border-radius: 4px;
+  padding: 0 3px;
+  color: #008ac5;
+  background: rgb(0 174 236 / 8%);
+  font: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+
+.bvs-timestamp-link:hover {
+  color: #006f9f;
+  background: rgb(0 174 236 / 16%);
+  text-decoration: underline;
+}
+
+.bvs-timestamp-link:focus-visible {
+  outline: 2px solid rgb(0 174 236 / 45%);
+  outline-offset: 1px;
+}
